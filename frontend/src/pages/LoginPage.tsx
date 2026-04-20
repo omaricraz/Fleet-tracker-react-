@@ -1,58 +1,63 @@
-import { ArrowRight, LockKeyhole } from 'lucide-react'
+import { useEffect } from 'react'
+import { Truck } from 'lucide-react'
 
-import { Card } from '@/components/Card'
-import { AppLogo } from '@/components/navigation/app-logo'
-import { PageHeader } from '@/components/PageHeader'
-import { ThemeToggle } from '@/components/theme-toggle'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { AuthFooter } from '@/features/auth/components/AuthFooter'
+import { LoginForm } from '@/features/auth/components/LoginForm'
 
 export function LoginPage() {
+  useEffect(() => {
+    const previous = document.title
+    document.title = 'Login | Fleet Tracker'
+    return () => {
+      document.title = previous
+    }
+  }, [])
+
   return (
-    <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-      <section className="hero-gradient relative overflow-hidden rounded-[calc(var(--radius-xl)+8px)] p-8 text-primary-foreground shadow-[var(--shadow-ambient)] md:p-10">
-        <div className="absolute inset-y-0 right-[-10%] w-56 rounded-full bg-white/8 blur-3xl" />
-        <div className="relative flex h-full flex-col justify-between gap-12">
-          <AppLogo compact className="text-primary-foreground" />
-          <div className="space-y-6">
-            <p className="eyebrow text-primary-foreground/70">Fleet Tracker</p>
-            <h1 className="max-w-lg text-4xl font-black tracking-[-0.04em] text-primary-foreground md:text-5xl">
-              Production-ready frontend foundation, ready for real auth flows later.
-            </h1>
-            <p className="max-w-xl text-sm leading-7 text-primary-foreground/80 md:text-base">
-              This placeholder keeps the auth route distinct from the main shell while staying intentionally free of backend assumptions.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <Card className="h-fit" title="Login placeholder" description="Authentication wiring is intentionally deferred to a later phase.">
-        <div className="mb-6 flex items-center justify-between">
-          <div className="rounded-full bg-accent p-3 text-accent-foreground">
-            <LockKeyhole className="size-5" />
-          </div>
-          <ThemeToggle />
+    <div className="flex min-h-screen flex-col">
+      <main className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-5 py-10 sm:px-6 sm:py-12">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -top-[10%] -right-[5%] h-[60%] w-[40%] rounded-full bg-muted/50 blur-3xl" />
+          <div className="absolute top-[40%] -left-[10%] h-[70%] w-[50%] rounded-full bg-accent/35 blur-3xl" />
         </div>
 
-        <PageHeader
-          eyebrow="Phase 1 only"
-          title="Sign in"
-          description="These controls establish layout, spacing, and theming only. No auth requests are being invented here."
-          className="mb-6"
-        />
+        <div className="relative z-10 flex w-full max-w-md flex-col items-center">
+          <header className="mb-8 flex w-full flex-col items-center sm:mb-10">
+            <div className="ambient-shadow mb-6 rounded-xl bg-surface-lowest p-4 dark:bg-card">
+              <div
+                className="flex h-12 w-12 items-center justify-center rounded-lg hero-gradient text-primary-foreground shadow-[var(--shadow-soft)]"
+                aria-hidden
+              >
+                <Truck className="size-6" strokeWidth={2.25} />
+              </div>
+            </div>
+            <div className="space-y-2 text-center">
+              <h1 className="text-2xl font-black tracking-tighter text-primary dark:text-primary-foreground sm:text-[1.65rem]">
+                Fleet Tracker
+              </h1>
+              <p className="flex items-center justify-center gap-2 text-sm font-medium uppercase tracking-wide text-muted-foreground">
+                <span className="size-1.5 shrink-0 rounded-full bg-primary dark:bg-primary-foreground" aria-hidden />
+                Log in to your workspace
+              </p>
+            </div>
+          </header>
 
-        <div className="space-y-4">
-          <Input disabled placeholder="Email address" type="email" />
-          <Input disabled placeholder="Password" type="password" />
-          <Button className="w-full justify-between" disabled size="lg">
-            Continue
-            <ArrowRight />
-          </Button>
-          <p className="text-sm leading-6 text-muted-foreground">
-            Hook real authentication into this route once backend contracts are available.
+          <LoginForm />
+
+          <p className="mt-8 text-center text-sm font-medium text-muted-foreground">
+            New fleet manager?{' '}
+            <a
+              href="#"
+              onClick={(e) => e.preventDefault()}
+              className="font-bold text-primary transition-colors hover:underline dark:text-primary-foreground"
+            >
+              Request Access
+            </a>
           </p>
         </div>
-      </Card>
+      </main>
+
+      <AuthFooter />
     </div>
   )
 }

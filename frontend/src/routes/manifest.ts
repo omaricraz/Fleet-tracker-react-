@@ -29,6 +29,18 @@ export const routeManifest: AppRouteMeta[] = [
     shell: 'auth',
   },
   {
+    path: '/dashboard',
+    title: 'Tenant Admin Dashboard',
+    navLabel: 'Dashboard',
+    description:
+      'Live operational overview: KPIs, fleet readiness, maintenance load, revenue, zones, and recent sales.',
+    icon: LayoutDashboard,
+    shell: 'app',
+    group: 'workspace',
+    showInSidebar: true,
+    showInMobileNav: true,
+  },
+  {
     path: '/platform',
     title: 'Platform',
     navLabel: 'Platform',

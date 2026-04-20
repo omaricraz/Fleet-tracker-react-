@@ -1,0 +1,1 @@
+export { ResourceManagementPage } from './ResourceManagementPage'

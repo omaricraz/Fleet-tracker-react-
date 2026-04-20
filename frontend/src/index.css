@@ -191,6 +191,16 @@
     background-color: rgb(15 27 44 / 0.78);
   }
 
+  .glass-login-panel {
+    background-color: rgb(255 255 255 / 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+
+  .dark .glass-login-panel {
+    background-color: rgb(15 27 44 / 0.82);
+  }
+
   .eyebrow {
     @apply text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground;
   }
