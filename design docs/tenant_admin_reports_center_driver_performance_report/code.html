@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Driver Performance Report - Halyeey Fleet Command</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container": "#112c49",
+                    "on-secondary-container": "#57657a",
+                    "surface-dim": "#cbdbf5",
+                    "surface-container": "#e5eeff",
+                    "secondary-container": "#d5e3fc",
+                    "tertiary-fixed-dim": "#bec6e0",
+                    "secondary": "#515f74",
+                    "on-surface": "#0b1c30",
+                    "surface-container-low": "#eff4ff",
+                    "surface-bright": "#f8f9ff",
+                    "on-tertiary-fixed": "#131b2e",
+                    "on-tertiary-container": "#8a92aa",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed-variant": "#3a485b",
+                    "surface-tint": "#486080",
+                    "on-primary-container": "#7b94b6",
+                    "on-background": "#0b1c30",
+                    "surface-container-high": "#dce9ff",
+                    "on-primary-fixed-variant": "#304867",
+                    "outline": "#74777e",
+                    "inverse-primary": "#afc8ed",
+                    "secondary-fixed": "#d5e3fc",
+                    "on-secondary-fixed": "#0d1c2e",
+                    "inverse-on-surface": "#eaf1ff",
+                    "tertiary-fixed": "#dae2fd",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed": "#001c38",
+                    "background": "#f8f9ff",
+                    "primary-fixed-dim": "#afc8ed",
+                    "surface-variant": "#d3e4fe",
+                    "on-surface-variant": "#43474d",
+                    "tertiary-container": "#232b3f",
+                    "on-secondary": "#ffffff",
+                    "surface-container-highest": "#d3e4fe",
+                    "secondary-fixed-dim": "#b9c7df",
+                    "on-primary": "#ffffff",
+                    "surface": "#f8f9ff",
+                    "primary": "#00172f",
+                    "on-error": "#ffffff",
+                    "on-tertiary-fixed-variant": "#3f465c",
+                    "primary-fixed": "#d3e4ff",
+                    "error-container": "#ffdad6",
+                    "outline-variant": "#c4c6ce",
+                    "inverse-surface": "#213145",
+                    "error": "#ba1a1a",
+                    "tertiary": "#0e1629",
+                    "on-error-container": "#93000a"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .filled-icon { font-variation-settings: 'FILL' 1; }
+        .scale-98-on-click:active { transform: scale(0.98); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="h-screen w-72 flex flex-col fixed left-0 top-0 bg-[#eff4ff] dark:bg-[#00172f] shadow-[40px_0_40px_-20px_rgba(11,28,48,0.06)] z-50">
+<div class="flex flex-col h-full py-8 gap-y-2">
+<!-- Brand Header -->
+<div class="px-8 mb-8">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+</div>
+<div>
+<h1 class="text-2xl font-black tracking-tighter text-[#00172f] dark:text-white uppercase leading-none">Halyeey</h1>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold">Fleet Command</p>
+</div>
+</div>
+</div>
+<!-- Main Nav Items -->
+<nav class="flex-1 flex flex-col gap-y-1">
+<a class="text-[#43474d] dark:text-slate-400 hover:text-[#00172f] dark:hover:text-white px-4 py-3 mx-4 transition-all hover:bg-[#d3e4ff]/50 dark:hover:bg-[#112c49] rounded-full flex items-center gap-3 font-['Inter'] font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span> Overview
+                </a>
+<a class="text-[#43474d] dark:text-slate-400 hover:text-[#00172f] dark:hover:text-white px-4 py-3 mx-4 transition-all hover:bg-[#d3e4ff]/50 dark:hover:bg-[#112c49] rounded-full flex items-center gap-3 font-['Inter'] font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="local_gas_station">local_gas_station</span> Fuel
+                </a>
+<a class="text-[#43474d] dark:text-slate-400 hover:text-[#00172f] dark:hover:text-white px-4 py-3 mx-4 transition-all hover:bg-[#d3e4ff]/50 dark:hover:bg-[#112c49] rounded-full flex items-center gap-3 font-['Inter'] font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="build">build</span> Maintenance
+                </a>
+<a class="text-[#43474d] dark:text-slate-400 hover:text-[#00172f] dark:hover:text-white px-4 py-3 mx-4 transition-all hover:bg-[#d3e4ff]/50 dark:hover:bg-[#112c49] rounded-full flex items-center gap-3 font-['Inter'] font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span> Sales
+                </a>
+<a class="text-[#43474d] dark:text-slate-400 hover:text-[#00172f] dark:hover:text-white px-4 py-3 mx-4 transition-all hover:bg-[#d3e4ff]/50 dark:hover:bg-[#112c49] rounded-full flex items-center gap-3 font-['Inter'] font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="route">route</span> Trips
+                </a>
+<a class="bg-[#d3e4ff] text-[#001c38] rounded-full px-4 py-3 mx-4 font-bold shadow-sm flex items-center gap-3 font-['Inter'] tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined filled-icon" data-icon="person_celebrate">person_celebrate</span> Driver Performance
+                </a>
+<a class="text-[#43474d] dark:text-slate-400 hover:text-[#00172f] dark:hover:text-white px-4 py-3 mx-4 transition-all hover:bg-[#d3e4ff]/50 dark:hover:bg-[#112c49] rounded-full flex items-center gap-3 font-['Inter'] font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="hail">hail</span> Requests
+                </a>
+</nav>
+<!-- Footer Nav -->
+<div class="mt-auto flex flex-col gap-y-1">
+<button class="bg-primary text-white mx-6 py-3 rounded-xl font-bold text-sm shadow-lg mb-6 scale-98-on-click flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">picture_as_pdf</span> Generate Report
+                </button>
+<a class="text-[#43474d] dark:text-slate-400 hover:text-[#00172f] dark:hover:text-white px-4 py-3 mx-4 transition-all hover:bg-[#d3e4ff]/50 rounded-full flex items-center gap-3 font-['Inter'] font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span> Settings
+                </a>
+<a class="text-[#43474d] dark:text-slate-400 hover:text-[#00172f] dark:hover:text-white px-4 py-3 mx-4 transition-all hover:bg-[#d3e4ff]/50 rounded-full flex items-center gap-3 font-['Inter'] font-medium tracking-tight text-sm" href="#">
+<span class="material-symbols-outlined" data-icon="contact_support">contact_support</span> Support
+                </a>
+</div>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="flex-1 ml-72">
+<!-- TopAppBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-18rem)] z-40 bg-white/80 dark:bg-[#00172f]/80 backdrop-blur-xl flex justify-between items-center px-10 py-4 font-['Inter'] leading-tight tracking-tight">
+<div class="flex items-center gap-6 flex-1">
+<h2 class="text-xl font-bold text-[#00172f] dark:text-white whitespace-nowrap">Reports Center</h2>
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-xl">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full pl-11 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20" placeholder="Search drivers, routes, or metrics..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 border-r border-outline-variant/30 pr-6 mr-2">
+<button class="bg-surface-container-high px-4 py-2 rounded-lg text-xs font-bold text-primary scale-98-on-click">Export Data</button>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant">
+<button class="material-symbols-outlined hover:text-primary transition-colors" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined hover:text-primary transition-colors" data-icon="calendar_today">calendar_today</button>
+<div class="flex items-center gap-3 ml-2 border-l border-outline-variant/30 pl-4">
+<div class="text-right">
+<p class="text-xs font-bold text-on-surface">Admin Halyeey</p>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-tighter">System Manager</p>
+</div>
+<img alt="Administrator Profile" class="w-10 h-10 rounded-full border-2 border-primary-fixed shadow-sm" data-alt="portrait of a professional fleet administrator wearing a light blue dress shirt in a modern office setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIjrpr7gMFpNK6QBbxyhOjjNPuJo5MSXwDLrLdcelevVp9uFXwETYrhCALQrdx4LtqVjvU9TvoYmmYLD9tB1ulG-Xa2gVU_9Y48exZJcoynePur3ddcUFeChibzMPDDu_zrkncdTkKiS4hOVimj-8V1rg0eEYKXvZc2kSnNzOAcmvsCAqxK2HgaPvJz99p9mZmSwQc_7WatqouaL7GvV46J20RTRG8_Jnx_M9KIXwPCP_Q-MkxXOu4dxO3gMcgzUMUsF_oXE5IrOOj"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="pt-28 px-10 pb-12 bg-surface">
+<!-- Breadcrumbs & Title -->
+<div class="mb-10 flex justify-between items-end">
+<div>
+<div class="flex items-center gap-2 text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">
+<span>Reports</span>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="text-primary">Driver Performance</span>
+</div>
+<h1 class="text-4xl font-black text-on-surface tracking-tighter">Driver Performance Report</h1>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2.5 bg-surface-container-lowest rounded-xl font-bold text-sm shadow-sm border border-outline-variant/10">
+<span class="material-symbols-outlined text-sm">filter_list</span> Filter Period
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl font-bold text-sm shadow-md scale-98-on-click">
+<span class="material-symbols-outlined text-sm">download</span> Download PDF
+                    </button>
+</div>
+</div>
+<!-- KPI Monoliths Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-10">
+<!-- KPI 1 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden group">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-primary rounded-r-full"></div>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Total Drivers</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-4xl font-black text-on-surface tracking-tighter">18</h3>
+<span class="text-xs font-bold text-green-600">+2 new</span>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<span class="material-symbols-outlined text-primary/20 text-3xl group-hover:text-primary/40 transition-colors">groups</span>
+<div class="h-1 w-16 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary w-2/3"></div>
+</div>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden group">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-secondary rounded-r-full"></div>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Top Performer</p>
+<h3 class="text-xl font-black text-on-surface tracking-tight truncate">Ali Hassan</h3>
+<p class="text-xs font-medium text-on-surface-variant">42 Trips this month</p>
+<div class="mt-4 flex items-center justify-between">
+<span class="material-symbols-outlined text-secondary/20 text-3xl">emoji_events</span>
+<span class="text-[10px] font-bold bg-secondary-fixed px-2 py-1 rounded text-on-secondary-fixed">ELITE</span>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-primary-fixed rounded-r-full"></div>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Avg Trips / Driver</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-4xl font-black text-on-surface tracking-tighter">25</h3>
+<span class="text-xs font-bold text-on-surface-variant">/ mo</span>
+</div>
+<div class="mt-4">
+<div class="flex justify-between items-center mb-1">
+<span class="text-[10px] text-on-surface-variant font-bold">VS TARGET</span>
+<span class="text-[10px] text-primary font-black">92%</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container-high rounded-full">
+<div class="h-full bg-primary-fixed-dim w-[92%] rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- KPI 4 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-primary rounded-r-full"></div>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Avg Revenue / Driver</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-3xl font-black text-on-surface tracking-tighter">$2,400</h3>
+</div>
+<p class="text-xs font-bold text-green-600 mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">trending_up</span> +12.4%
+                    </p>
+<div class="mt-2 text-primary/10">
+<span class="material-symbols-outlined text-4xl leading-none">payments</span>
+</div>
+</div>
+<!-- KPI 5 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-secondary rounded-r-full"></div>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Avg Fuel Usage</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-3xl font-black text-on-surface tracking-tighter">8.5</h3>
+<span class="text-xs font-bold text-on-surface-variant uppercase tracking-tighter">km/L</span>
+</div>
+<p class="text-xs font-bold text-red-500 mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">trending_down</span> -2.1%
+                    </p>
+</div>
+<!-- KPI 6 -->
+<div class="bg-surface-container-lowest p-6 rounded-xl relative overflow-hidden">
+<div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-12 bg-primary-fixed rounded-r-full"></div>
+<p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1">Attendance Trend</p>
+<div class="flex items-baseline gap-2">
+<h3 class="text-4xl font-black text-on-surface tracking-tighter">+5%</h3>
+</div>
+<div class="mt-4 overflow-hidden h-8 flex items-end gap-1">
+<div class="w-full bg-primary-container h-[40%] rounded-t-sm"></div>
+<div class="w-full bg-primary-container h-[60%] rounded-t-sm"></div>
+<div class="w-full bg-primary-container h-[55%] rounded-t-sm"></div>
+<div class="w-full bg-primary-container h-[80%] rounded-t-sm"></div>
+<div class="w-full bg-primary-container h-[95%] rounded-t-sm"></div>
+</div>
+</div>
+</div>
+<!-- Bento Analytics Grid -->
+<div class="grid grid-cols-12 gap-6 mb-10">
+<!-- Driver Revenue Ranking (Bar chart) -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-xl p-8 shadow-sm">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h4 class="text-lg font-bold text-on-surface tracking-tight">Driver Revenue Ranking</h4>
+<p class="text-xs text-on-surface-variant font-medium">Monthly revenue generation per active driver</p>
+</div>
+<select class="bg-surface-container-low border-none rounded-lg text-xs font-bold py-2 pr-8">
+<option>Current Month</option>
+<option>Last 3 Months</option>
+</select>
+</div>
+<div class="space-y-4">
+<!-- Bar Item 1 -->
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-bold">
+<span>Ali Hassan</span>
+<span>$14,200</span>
+</div>
+<div class="h-3 w-full bg-surface-container-low rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-[95%]"></div>
+</div>
+</div>
+<!-- Bar Item 2 -->
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-bold">
+<span>Zoe Roberts</span>
+<span>$12,850</span>
+</div>
+<div class="h-3 w-full bg-surface-container-low rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-[82%]"></div>
+</div>
+</div>
+<!-- Bar Item 3 -->
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-bold">
+<span>Marcus Chen</span>
+<span>$11,400</span>
+</div>
+<div class="h-3 w-full bg-surface-container-low rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-[74%]"></div>
+</div>
+</div>
+<!-- Bar Item 4 -->
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-bold">
+<span>Elena Rodriguez</span>
+<span>$9,200</span>
+</div>
+<div class="h-3 w-full bg-surface-container-low rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full w-[60%]"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Secondary Charts Column -->
+<div class="col-span-12 lg:col-span-4 space-y-6">
+<!-- Fuel Usage Card -->
+<div class="bg-primary-container text-white rounded-xl p-8 shadow-xl">
+<h4 class="text-sm font-bold uppercase tracking-widest text-on-primary-container mb-6">Efficiency Pulse</h4>
+<div class="flex items-center gap-6">
+<div class="relative w-24 h-24 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90">
+<circle class="text-white/10" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary-fixed" cx="48" cy="48" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="62.8" stroke-width="8"></circle>
+</svg>
+<span class="absolute text-xl font-black">75%</span>
+</div>
+<div>
+<p class="text-2xl font-black tracking-tighter">Optimization</p>
+<p class="text-xs text-on-primary-container font-medium">Routes are 8% more efficient than last month.</p>
+</div>
+</div>
+</div>
+<!-- New Customers by Driver -->
+<div class="bg-surface-container-lowest rounded-xl p-6 shadow-sm border border-outline-variant/10">
+<div class="flex items-center justify-between mb-4">
+<h4 class="text-sm font-bold text-on-surface">Growth Contribution</h4>
+<span class="material-symbols-outlined text-primary" data-icon="add_reaction">add_reaction</span>
+</div>
+<div class="flex items-center gap-3 py-3 border-b border-outline-variant/5">
+<div class="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center text-[10px] font-bold text-on-secondary-container">1st</div>
+<div class="flex-1">
+<p class="text-xs font-bold">David Smith</p>
+<p class="text-[10px] text-on-surface-variant font-medium">12 New Customers</p>
+</div>
+</div>
+<div class="flex items-center gap-3 py-3">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-[10px] font-bold text-on-surface-variant">2nd</div>
+<div class="flex-1">
+<p class="text-xs font-bold">Priya Patel</p>
+<p class="text-[10px] text-on-surface-variant font-medium">9 New Customers</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Ranking Table -->
+<div class="bg-surface-container-lowest rounded-2xl shadow-xl overflow-hidden">
+<div class="px-8 py-6 bg-surface-container-high/40 flex justify-between items-center border-b border-outline-variant/10">
+<h3 class="text-lg font-black text-on-surface tracking-tight">Detailed Ranking Leaderboard</h3>
+<div class="flex items-center gap-4">
+<div class="flex bg-surface-container-low rounded-lg p-1">
+<button class="px-4 py-1.5 rounded-md text-[10px] font-bold bg-white shadow-sm text-primary">ALL DRIVERS</button>
+<button class="px-4 py-1.5 rounded-md text-[10px] font-bold text-on-surface-variant">TOP 10</button>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant">more_vert</button>
+</div>
+</div>
+<div class="overflow-x-auto no-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high/20">
+<th class="px-8 py-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Rank</th>
+<th class="px-8 py-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Driver Name</th>
+<th class="px-8 py-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest text-center">Trips</th>
+<th class="px-8 py-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest text-right">Revenue</th>
+<th class="px-8 py-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest text-center">Customers</th>
+<th class="px-8 py-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest text-center">Units Sold</th>
+<th class="px-8 py-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest text-center">Fuel Used</th>
+<th class="px-8 py-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Avg Arrival</th>
+<th class="px-8 py-4 text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<!-- Top 1 - Gold -->
+<tr class="hover:bg-primary-fixed/20 transition-colors group">
+<td class="px-8 py-5">
+<div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-yellow-600 filled-icon text-xl">workspace_premium</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="professional driver portrait with confident expression, neutral background, soft corporate lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRIUDkRsRWvM6rSi139qpNR5F3uBIfxeMxvI10e5Bf4QZ66N9TnLgAkqvxnHeLu0qD6t-gCuNKf745kVffnZkeHbe0xLvTKFuFwzQeRAEI4ExhmwF5cizHe43E7Wm3eA0-XOZ25j7M0V5A7GHINJH3WNGhviksa-WDq4Huic-YX9hwLUzN7YkV9PWrzdM-no-UKogR-On3WnNLPYYxVF0yDaCofBi_T7EIODFVaoMjBhWIh56lgU7uU6KYrutu_iV9yHx1hK-Jcg5Y"/>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Ali Hassan</p>
+<p class="text-[10px] text-on-surface-variant">Senior Lead Driver</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5 text-center text-sm font-bold">42</td>
+<td class="px-8 py-5 text-right text-sm font-black text-primary">$14,200</td>
+<td class="px-8 py-5 text-center text-sm font-medium">156</td>
+<td class="px-8 py-5 text-center text-sm font-medium">840</td>
+<td class="px-8 py-5 text-center text-sm font-medium">380L</td>
+<td class="px-8 py-5">
+<span class="text-xs font-bold text-green-600">On Time</span>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold">ACTIVE</span>
+</td>
+</tr>
+<!-- Top 2 - Silver -->
+<tr class="hover:bg-primary-fixed/20 transition-colors">
+<td class="px-8 py-5">
+<div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-500 filled-icon text-xl">workspace_premium</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="female delivery driver smiling warmly in professional uniform, bright daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBJwhJ0rtbLRBszZnY0fDpCLYQcQAQryG_N7V5ZxeYxWDt07AdOTUaoDCdUAHPD0pJXWnDZhaEwloEaJowIzFoZQqglu_O7tTZCMQneVNqt-SYH4qs976BMSWfjbrSV-f9jgt3qtr9VgeKZ84HwrzojrZU-baHjAmzKsbTGBBV74vhc9z6HpS6J7wLa4IFC41J-cp5thlYWTKAIXzd7sdnnguyaExNVwUF-N_Cr0FEAyeUSJJkRPY2uP6nJh2sDqhGOp9oCHbFE6HFr"/>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Zoe Roberts</p>
+<p class="text-[10px] text-on-surface-variant">Lead Driver</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5 text-center text-sm font-bold">39</td>
+<td class="px-8 py-5 text-right text-sm font-black text-primary">$12,850</td>
+<td class="px-8 py-5 text-center text-sm font-medium">142</td>
+<td class="px-8 py-5 text-center text-sm font-medium">790</td>
+<td class="px-8 py-5 text-center text-sm font-medium">355L</td>
+<td class="px-8 py-5">
+<span class="text-xs font-bold text-green-600">-2 min avg</span>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold">ACTIVE</span>
+</td>
+</tr>
+<!-- Top 3 - Bronze -->
+<tr class="hover:bg-primary-fixed/20 transition-colors">
+<td class="px-8 py-5">
+<div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+<span class="material-symbols-outlined text-orange-600 filled-icon text-xl">workspace_premium</span>
+</div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="middle aged professional transport specialist with focused gaze, outdoor corporate setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAENRpV3bfmBLSRBRoi1a7T7Ycs9OrT_tWx--vZ37ioUESGJKy632IfcJCvzEhNnvrxQyqvQ8xM28vfngEsYn_CEhUDaJMMJu0UtyBbuf0HkeYQB6hxCKVFBb0d8Hm1-PwC-pVUZrDq6vGmd6Vsm4nCfZkLrjh6dkqAS5mHHebR9D26gbzQvqBybF1v0vACdP-k5_Q7-rr-Vv8W8HJXFpflHF512o3iWmBUPR8Cb5OX3NBXl7MhQj8cup45TV_xJxYzpQFRbCmrPA--"/>
+</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Marcus Chen</p>
+<p class="text-[10px] text-on-surface-variant">Driver III</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5 text-center text-sm font-bold">35</td>
+<td class="px-8 py-5 text-right text-sm font-black text-primary">$11,400</td>
+<td class="px-8 py-5 text-center text-sm font-medium">120</td>
+<td class="px-8 py-5 text-center text-sm font-medium">620</td>
+<td class="px-8 py-5 text-center text-sm font-medium">410L</td>
+<td class="px-8 py-5">
+<span class="text-xs font-bold text-on-surface-variant">On Time</span>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold">ACTIVE</span>
+</td>
+</tr>
+<!-- Normal Row -->
+<tr class="hover:bg-primary-fixed/20 transition-colors">
+<td class="px-8 py-5">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-xs font-bold text-on-surface-variant">
+                                        4
+                                    </div>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">ER</div>
+<div>
+<p class="text-sm font-bold text-on-surface">Elena Rodriguez</p>
+<p class="text-[10px] text-on-surface-variant">Driver II</p>
+</div>
+</div>
+</td>
+<td class="px-8 py-5 text-center text-sm font-bold">31</td>
+<td class="px-8 py-5 text-right text-sm font-black text-primary">$9,200</td>
+<td class="px-8 py-5 text-center text-sm font-medium">98</td>
+<td class="px-8 py-5 text-center text-sm font-medium">510</td>
+<td class="px-8 py-5 text-center text-sm font-medium">320L</td>
+<td class="px-8 py-5">
+<span class="text-xs font-bold text-red-500">+5 min delay</span>
+</td>
+<td class="px-8 py-5">
+<span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-[10px] font-bold">RESTING</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-8 py-6 flex justify-between items-center bg-surface-container-low/30 border-t border-outline-variant/10">
+<p class="text-xs font-medium text-on-surface-variant italic">Showing 1-10 of 18 drivers</p>
+<div class="flex gap-2">
+<button class="w-8 h-8 flex items-center justify-center bg-white border border-outline-variant/20 rounded-md shadow-sm disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-md shadow-sm text-xs font-bold">1</button>
+<button class="w-8 h-8 flex items-center justify-center bg-white border border-outline-variant/20 rounded-md shadow-sm text-xs font-bold">2</button>
+<button class="w-8 h-8 flex items-center justify-center bg-white border border-outline-variant/20 rounded-md shadow-sm">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action for Quick Add (Only Home/Contextual) - Not Rendered as per shell visibility rules -->
+</body></html>

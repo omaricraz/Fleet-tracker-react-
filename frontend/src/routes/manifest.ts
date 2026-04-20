@@ -1,0 +1,132 @@
+import {
+  BarChart3,
+  BriefcaseBusiness,
+  ClipboardList,
+  LayoutDashboard,
+  LogIn,
+  Package2,
+  Route,
+  ShieldCheck,
+  Truck,
+  Users,
+} from 'lucide-react'
+
+import type { AppRouteMeta, AppRouteGroup } from '@/types/navigation'
+
+export const routeGroups: Array<{ id: AppRouteGroup; label: string }> = [
+  { id: 'workspace', label: 'Workspaces' },
+  { id: 'operations', label: 'Operations' },
+  { id: 'insights', label: 'Insights' },
+]
+
+export const routeManifest: AppRouteMeta[] = [
+  {
+    path: '/login',
+    title: 'Login',
+    navLabel: 'Login',
+    description: 'Authentication entrypoint placeholder for the Fleet Tracker platform.',
+    icon: LogIn,
+    shell: 'auth',
+  },
+  {
+    path: '/platform',
+    title: 'Platform',
+    navLabel: 'Platform',
+    description: 'Cross-role command center and system-wide navigation foundation.',
+    icon: LayoutDashboard,
+    shell: 'app',
+    group: 'workspace',
+    showInSidebar: true,
+    showInMobileNav: true,
+  },
+  {
+    path: '/admin',
+    title: 'Admin Workspace',
+    navLabel: 'Admin',
+    description: 'Tenant and operations administration workspace foundation.',
+    icon: ShieldCheck,
+    shell: 'app',
+    group: 'workspace',
+    showInSidebar: true,
+  },
+  {
+    path: '/manager',
+    title: 'Manager Workspace',
+    navLabel: 'Manager',
+    description: 'Manager-facing operational oversight and approval workflow foundation.',
+    icon: BriefcaseBusiness,
+    shell: 'app',
+    group: 'workspace',
+    showInSidebar: true,
+  },
+  {
+    path: '/driver',
+    title: 'Driver Workspace',
+    navLabel: 'Driver',
+    description: 'Driver-focused mobile-first workspace foundation inspired by the design references.',
+    icon: Users,
+    shell: 'app',
+    group: 'workspace',
+    showInSidebar: true,
+    showInMobileNav: true,
+  },
+  {
+    path: '/fleet-management',
+    title: 'Fleet Management',
+    navLabel: 'Fleet',
+    description: 'Vehicle inventory, readiness, and command surfaces foundation.',
+    icon: Truck,
+    shell: 'app',
+    group: 'operations',
+    showInSidebar: true,
+    showInMobileNav: true,
+  },
+  {
+    path: '/trip-management',
+    title: 'Trip Management',
+    navLabel: 'Trips',
+    description: 'Dispatch, routing, and trip lifecycle management foundation.',
+    icon: Route,
+    shell: 'app',
+    group: 'operations',
+    showInSidebar: true,
+    showInMobileNav: true,
+  },
+  {
+    path: '/resource-management',
+    title: 'Resource Management',
+    navLabel: 'Resources',
+    description: 'Resources, inventory, and support systems foundation.',
+    icon: Package2,
+    shell: 'app',
+    group: 'operations',
+    showInSidebar: true,
+  },
+  {
+    path: '/request-management',
+    title: 'Request Management',
+    navLabel: 'Requests',
+    description: 'Request intake, triage, and approval foundation for future workflows.',
+    icon: ClipboardList,
+    shell: 'app',
+    group: 'operations',
+    showInSidebar: true,
+  },
+  {
+    path: '/reports',
+    title: 'Reports',
+    navLabel: 'Reports',
+    description: 'Analytics and reporting foundation for the Fleet Tracker control plane.',
+    icon: BarChart3,
+    shell: 'app',
+    group: 'insights',
+    showInSidebar: true,
+    showInMobileNav: true,
+  },
+]
+
+export const appRoutes = routeManifest.filter((route) => route.shell === 'app')
+
+export function getRouteMeta(pathname: string) {
+  return routeManifest.find((route) => route.path === pathname) ?? routeManifest[1]
+}

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Customers Report | FleetControl</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "surface-container-lowest": "#ffffff",
+            "on-primary-container": "#7b94b6",
+            "secondary-container": "#d5e3fc",
+            "secondary": "#515f74",
+            "outline": "#74777e",
+            "primary": "#00172f",
+            "tertiary-fixed": "#dae2fd",
+            "inverse-primary": "#afc8ed",
+            "on-primary": "#ffffff",
+            "on-primary-fixed-variant": "#304867",
+            "primary-container": "#112c49",
+            "surface-variant": "#d3e4fe",
+            "inverse-on-surface": "#eaf1ff",
+            "on-secondary-fixed-variant": "#3a485b",
+            "on-background": "#0b1c30",
+            "tertiary-container": "#232b3f",
+            "surface-container-low": "#eff4ff",
+            "tertiary": "#0e1629",
+            "secondary-fixed-dim": "#b9c7df",
+            "secondary-fixed": "#d5e3fc",
+            "primary-fixed": "#d3e4ff",
+            "on-secondary-container": "#57657a",
+            "on-primary-fixed": "#001c38",
+            "surface-container": "#e5eeff",
+            "on-error": "#ffffff",
+            "surface-bright": "#f8f9ff",
+            "on-surface": "#0b1c30",
+            "surface-dim": "#cbdbf5",
+            "primary-fixed-dim": "#afc8ed",
+            "tertiary-fixed-dim": "#bec6e0",
+            "on-tertiary": "#ffffff",
+            "inverse-surface": "#213145",
+            "error": "#ba1a1a",
+            "surface-container-high": "#dce9ff",
+            "surface": "#f8f9ff",
+            "on-tertiary-container": "#8a92aa",
+            "background": "#f8f9ff",
+            "on-tertiary-fixed": "#131b2e",
+            "on-error-container": "#93000a",
+            "on-tertiary-fixed-variant": "#3f465c",
+            "outline-variant": "#c4c6ce",
+            "surface-container-highest": "#d3e4fe",
+            "on-surface-variant": "#43474d",
+            "surface-tint": "#486080",
+            "on-secondary-fixed": "#0d1c2e",
+            "on-secondary": "#ffffff",
+            "error-container": "#ffdad6"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "fontFamily": {
+            "headline": ["Inter"],
+            "body": ["Inter"],
+            "label": ["Inter"]
+          }
+        }
+      }
+    }
+  </script>
+<style>
+    body { font-family: 'Inter', sans-serif; }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .chart-bar-glow { filter: drop-shadow(0 0 4px rgba(0, 23, 47, 0.1)); }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f8f9ff; }
+    ::-webkit-scrollbar-thumb { background: #c4c6ce; border-radius: 4px; }
+  </style>
+</head>
+<body class="bg-surface text-on-background min-h-screen flex overflow-x-hidden">
+<!-- SideNavBar -->
+<aside class="h-screen w-64 flex flex-col fixed left-0 top-0 bg-[#eff4ff] dark:bg-[#00172f] hidden lg:flex border-r-0 pt-20 z-40">
+<div class="px-6 mb-8">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div>
+<h3 class="text-sm font-bold text-primary dark:text-white leading-tight">Fleet Manager</h3>
+<p class="text-xs text-on-surface-variant">Global Logistics</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="text-[#43474d] dark:text-[#c4c6ce] mx-4 px-4 py-2 flex items-center gap-3 hover:bg-[#d3e4ff]/50 transition-all rounded-full" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Overview</span>
+</a>
+<a class="text-[#43474d] dark:text-[#c4c6ce] mx-4 px-4 py-2 flex items-center gap-3 hover:bg-[#d3e4ff]/50 transition-all rounded-full" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+<span>Fleet Status</span>
+</a>
+<a class="bg-[#d3e4ff] text-[#001c38] rounded-full mx-4 px-4 py-2 flex items-center gap-3" href="#">
+<span class="material-symbols-outlined">assessment</span>
+<span>Customer Reports</span>
+</a>
+<a class="text-[#43474d] dark:text-[#c4c6ce] mx-4 px-4 py-2 flex items-center gap-3 hover:bg-[#d3e4ff]/50 transition-all rounded-full" href="#">
+<span class="material-symbols-outlined">route</span>
+<span>Route Optimization</span>
+</a>
+<a class="text-[#43474d] dark:text-[#c4c6ce] mx-4 px-4 py-2 flex items-center gap-3 hover:bg-[#d3e4ff]/50 transition-all rounded-full" href="#">
+<span class="material-symbols-outlined">build</span>
+<span>Maintenance</span>
+</a>
+<a class="text-[#43474d] dark:text-[#c4c6ce] mx-4 px-4 py-2 flex items-center gap-3 hover:bg-[#d3e4ff]/50 transition-all rounded-full" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span>Analytics</span>
+</a>
+</nav>
+<div class="p-6">
+<button class="w-full bg-primary text-white py-2 rounded-md font-bold text-sm shadow-lg hover:scale-[0.98] transition-transform">
+        New Report
+      </button>
+</div>
+<div class="mt-auto border-t border-outline-variant/10 py-4">
+<a class="text-[#43474d] dark:text-[#c4c6ce] mx-4 px-4 py-2 flex items-center gap-3 hover:bg-[#d3e4ff]/50 transition-all rounded-full" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+<a class="text-[#43474d] dark:text-[#c4c6ce] mx-4 px-4 py-2 flex items-center gap-3 hover:bg-[#d3e4ff]/50 transition-all rounded-full" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Log Out</span>
+</a>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="flex-1 lg:ml-64 min-w-0 flex flex-col">
+<!-- TopNavBar -->
+<header class="bg-white/80 dark:bg-[#00172f]/80 backdrop-blur-xl docked full-width top-0 sticky z-50 shadow-[0_24px_40px_rgba(11,28,48,0.06)] flex justify-between items-center w-full px-8 h-16">
+<div class="flex items-center gap-8">
+<span class="text-xl font-black tracking-tighter text-[#00172f] dark:text-white">FleetControl</span>
+<div class="hidden md:flex gap-6 items-center text-sm">
+<a class="text-[#43474d] dark:text-[#c4c6ce] hover:text-[#112C49]" href="#">Dashboard</a>
+<a class="text-[#43474d] dark:text-[#c4c6ce] hover:text-[#112C49]" href="#">Analytics</a>
+<a class="text-[#43474d] dark:text-[#c4c6ce] hover:text-[#112C49]" href="#">Fleet</a>
+<a class="text-[#112C49] dark:text-white font-bold border-b-2 border-[#112C49] pb-1" href="#">Reports</a>
+<a class="text-[#43474d] dark:text-[#c4c6ce] hover:text-[#112C49]" href="#">Settings</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-on-surface-variant hover:bg-[#eff4ff] rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:bg-[#eff4ff] rounded-full transition-colors">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="User profile" data-alt="professional portrait of a fleet administrator in a clean modern office environment" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGjtCCmqB6bnbq73M_pKel0VrLuhiCpjQAQx1ueGMFLdHglxOAdw32ywusoXNzUnS62vtUPz5YLT6iRtByoA7vHVyjD3PBuG_TlK7hvOhsBPPSWQ7UoJF-LUmxHPt4n4NeT8N6UMHIaASy1NL9xq5nzzx4B9PkFvt3Lk1PE_pDSY2vj_pstD88JHquLk6ZRuptUqceQ-6qo2lKQi2SVl69XVdzvsmFAtX5jagbNRvxwUNd_k0_oAX9VfNxP_uQbfOwmNTOPYknXwg9"/>
+</div>
+</div>
+</header>
+<div class="p-8 space-y-6 max-w-[1600px] mx-auto w-full">
+<!-- Filter Bar -->
+<div class="bg-white dark:bg-primary-container rounded-xl shadow-sm border border-outline-variant/10 p-4">
+<div class="flex flex-wrap items-center gap-4">
+<div class="flex-1 min-w-[300px] relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-xl">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface-container-low border border-outline-variant/20 rounded-md text-sm focus:ring-2 focus:ring-primary/20 placeholder-on-surface-variant/60" placeholder="Search Name, Phone or ID..." type="text"/>
+</div>
+<div class="flex flex-wrap items-center gap-3">
+<!-- Shadcn/UI like components -->
+<div class="relative group min-w-[140px]">
+<button class="w-full flex items-center justify-between px-4 py-2 bg-surface-container-low border border-outline-variant/20 rounded-md text-sm text-on-surface hover:bg-surface-container-high transition-colors">
+<span class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">calendar_today</span> Last 30 Days</span>
+<span class="material-symbols-outlined text-xs">expand_more</span>
+</button>
+</div>
+<div class="relative group min-w-[120px]">
+<button class="w-full flex items-center justify-between px-4 py-2 bg-surface-container-low border border-outline-variant/20 rounded-md text-sm text-on-surface hover:bg-surface-container-high transition-colors">
+<span>All Zones</span>
+<span class="material-symbols-outlined text-xs">expand_more</span>
+</button>
+</div>
+<div class="relative group min-w-[120px]">
+<button class="w-full flex items-center justify-between px-4 py-2 bg-surface-container-low border border-outline-variant/20 rounded-md text-sm text-on-surface hover:bg-surface-container-high transition-colors">
+<span>All Drivers</span>
+<span class="material-symbols-outlined text-xs">expand_more</span>
+</button>
+</div>
+<div class="relative group min-w-[140px]">
+<button class="w-full flex items-center justify-between px-4 py-2 bg-surface-container-low border border-outline-variant/20 rounded-md text-sm text-on-surface hover:bg-surface-container-high transition-colors">
+<span>Customer Status</span>
+<span class="material-symbols-outlined text-xs">expand_more</span>
+</button>
+</div>
+<button class="p-2 bg-primary text-white rounded-md flex items-center justify-center hover:opacity-90 transition-opacity">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Main Table Section -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm border border-outline-variant/10">
+<div class="px-8 py-6 flex items-center justify-between border-b border-outline-variant/10">
+<h3 class="text-lg font-bold text-primary">Customer Performance Ledger</h3>
+<button class="text-sm text-primary-fixed-dim bg-primary px-3 py-1 rounded-md">15 of 2,480 Records</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-surface-container-high">
+<tr>
+<th class="px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Customer</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Zone</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Orders</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Revenue</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Avg Order</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Last Purchase</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Driver</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Status</th>
+<th class="px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/10">
+<!-- Row 1 -->
+<tr class="hover:bg-primary-fixed/10 transition-colors group">
+<td class="px-8 py-4">
+<div class="flex flex-col">
+<span class="font-bold text-primary">Zamzam Store</span>
+<span class="text-xs text-on-surface-variant">+252 63 4410111</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">Hargeisa East</td>
+<td class="px-6 py-4 text-sm font-medium">124</td>
+<td class="px-6 py-4 text-sm font-black text-primary">$4,250</td>
+<td class="px-6 py-4 text-sm">$34.20</td>
+<td class="px-6 py-4 text-sm">2 hours ago</td>
+<td class="px-6 py-4 text-sm">Ahmed Ali</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-full">VIP</span>
+</td>
+<td class="px-8 py-4">
+<div class="flex items-center gap-2">
+<button class="text-primary hover:underline text-xs font-bold">View Profile</button>
+<span class="material-symbols-outlined text-sm text-on-surface-variant">history</span>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-primary-fixed/10 transition-colors group">
+<td class="px-8 py-4">
+<div class="flex flex-col">
+<span class="font-bold text-primary">Barwaaqo Shop</span>
+<span class="text-xs text-on-surface-variant">+252 63 4459922</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">Berbera</td>
+<td class="px-6 py-4 text-sm font-medium">89</td>
+<td class="px-6 py-4 text-sm font-black text-primary">$2,980</td>
+<td class="px-6 py-4 text-sm">$33.48</td>
+<td class="px-6 py-4 text-sm">Yesterday</td>
+<td class="px-6 py-4 text-sm">Mustafa Said</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-secondary-container text-primary text-[10px] font-bold rounded-full uppercase">High Value</span>
+</td>
+<td class="px-8 py-4">
+<div class="flex items-center gap-2">
+<button class="text-primary hover:underline text-xs font-bold">View Profile</button>
+<span class="material-symbols-outlined text-sm text-on-surface-variant">history</span>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-primary-fixed/10 transition-colors group">
+<td class="px-8 py-4">
+<div class="flex flex-col">
+<span class="font-bold text-primary">Tabaarak Cafe</span>
+<span class="text-xs text-on-surface-variant">+252 63 9922883</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">Burao</td>
+<td class="px-6 py-4 text-sm font-medium">12</td>
+<td class="px-6 py-4 text-sm font-black text-primary">$450</td>
+<td class="px-6 py-4 text-sm">$37.50</td>
+<td class="px-6 py-4 text-sm">5 days ago</td>
+<td class="px-6 py-4 text-sm">Abdi Rahman</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-surface-container-high text-on-surface-variant text-[10px] font-bold rounded-full uppercase">New</span>
+</td>
+<td class="px-8 py-4">
+<div class="flex items-center gap-2">
+<button class="text-primary hover:underline text-xs font-bold">View Profile</button>
+<span class="material-symbols-outlined text-sm text-on-surface-variant">history</span>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-primary-fixed/10 transition-colors group">
+<td class="px-8 py-4">
+<div class="flex flex-col">
+<span class="font-bold text-primary">Dalmar Electronics</span>
+<span class="text-xs text-on-surface-variant">+252 63 1122334</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">Hargeisa West</td>
+<td class="px-6 py-4 text-sm font-medium">210</td>
+<td class="px-6 py-4 text-sm font-black text-primary">$1,250</td>
+<td class="px-6 py-4 text-sm">$5.95</td>
+<td class="px-6 py-4 text-sm">1 hour ago</td>
+<td class="px-6 py-4 text-sm">Ahmed Ali</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-green-100 text-green-800 text-[10px] font-bold rounded-full uppercase">Active</span>
+</td>
+<td class="px-8 py-4">
+<div class="flex items-center gap-2">
+<button class="text-primary hover:underline text-xs font-bold">View Profile</button>
+<span class="material-symbols-outlined text-sm text-on-surface-variant">history</span>
+</div>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-primary-fixed/10 transition-colors group">
+<td class="px-8 py-4">
+<div class="flex flex-col">
+<span class="font-bold text-primary">Kaafi Hotel</span>
+<span class="text-xs text-on-surface-variant">+252 63 5556677</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm">Bosaso</td>
+<td class="px-6 py-4 text-sm font-medium">5</td>
+<td class="px-6 py-4 text-sm font-black text-primary">$120</td>
+<td class="px-6 py-4 text-sm">$24.00</td>
+<td class="px-6 py-4 text-sm">1 month ago</td>
+<td class="px-6 py-4 text-sm">Zekariye Osman</td>
+<td class="px-6 py-4">
+<span class="px-3 py-1 bg-red-100 text-red-800 text-[10px] font-bold rounded-full uppercase">Inactive</span>
+</td>
+<td class="px-8 py-4">
+<div class="flex items-center gap-2">
+<button class="text-primary hover:underline text-xs font-bold">View Profile</button>
+<span class="material-symbols-outlined text-sm text-on-surface-variant">history</span>
+</div>
+</td>
+</tr>
+<!-- More Mock Data Rows -->
+<tr class="hover:bg-primary-fixed/10 transition-colors group">
+<td class="px-8 py-4"><div class="flex flex-col"><span class="font-bold text-primary">Najax Retail</span><span class="text-xs text-on-surface-variant">+252 63 7778899</span></div></td>
+<td class="px-6 py-4 text-sm">Burao</td>
+<td class="px-6 py-4 text-sm font-medium">56</td>
+<td class="px-6 py-4 text-sm font-black text-primary">$1,840</td>
+<td class="px-6 py-4 text-sm">$32.85</td>
+<td class="px-6 py-4 text-sm">3 hours ago</td>
+<td class="px-6 py-4 text-sm">Abdi Rahman</td>
+<td class="px-6 py-4"><span class="px-3 py-1 bg-secondary-container text-primary text-[10px] font-bold rounded-full uppercase">High Value</span></td>
+<td class="px-8 py-4"><div class="flex items-center gap-2"><button class="text-primary hover:underline text-xs font-bold">View Profile</button></div></td>
+</tr>
+<tr class="hover:bg-primary-fixed/10 transition-colors group">
+<td class="px-8 py-4"><div class="flex flex-col"><span class="font-bold text-primary">Xidig Grocery</span><span class="text-xs text-on-surface-variant">+252 63 2223344</span></div></td>
+<td class="px-6 py-4 text-sm">Garowe</td>
+<td class="px-6 py-4 text-sm font-medium">32</td>
+<td class="px-6 py-4 text-sm font-black text-primary">$980</td>
+<td class="px-6 py-4 text-sm">$30.62</td>
+<td class="px-6 py-4 text-sm">Today</td>
+<td class="px-6 py-4 text-sm">Mustafa Said</td>
+<td class="px-6 py-4"><span class="px-3 py-1 bg-green-100 text-green-800 text-[10px] font-bold rounded-full uppercase">Active</span></td>
+<td class="px-8 py-4"><div class="flex items-center gap-2"><button class="text-primary hover:underline text-xs font-bold">View Profile</button></div></td>
+</tr>
+<tr class="hover:bg-primary-fixed/10 transition-colors group">
+<td class="px-8 py-4"><div class="flex flex-col"><span class="font-bold text-primary">SomNet HQ</span><span class="text-xs text-on-surface-variant">+252 63 1212121</span></div></td>
+<td class="px-6 py-4 text-sm">Hargeisa East</td>
+<td class="px-6 py-4 text-sm font-medium">310</td>
+<td class="px-6 py-4 text-sm font-black text-primary">$12,450</td>
+<td class="px-6 py-4 text-sm">$40.16</td>
+<td class="px-6 py-4 text-sm">Just now</td>
+<td class="px-6 py-4 text-sm">Ahmed Ali</td>
+<td class="px-6 py-4"><span class="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-full uppercase">VIP</span></td>
+<td class="px-8 py-4"><div class="flex items-center gap-2"><button class="text-primary hover:underline text-xs font-bold">View Profile</button></div></td>
+</tr>
+<tr class="hover:bg-primary-fixed/10 transition-colors group">
+<td class="px-8 py-4"><div class="flex flex-col"><span class="font-bold text-primary">Mansoor Store</span><span class="text-xs text-on-surface-variant">+252 63 9090909</span></div></td>
+<td class="px-6 py-4 text-sm">Hargeisa West</td>
+<td class="px-6 py-4 text-sm font-medium">18</td>
+<td class="px-6 py-4 text-sm font-black text-primary">$320</td>
+<td class="px-6 py-4 text-sm">$17.77</td>
+<td class="px-6 py-4 text-sm">2 weeks ago</td>
+<td class="px-6 py-4 text-sm">Ahmed Ali</td>
+<td class="px-6 py-4"><span class="px-3 py-1 bg-surface-container-high text-on-surface-variant text-[10px] font-bold rounded-full uppercase">Regular</span></td>
+<td class="px-8 py-4"><div class="flex items-center gap-2"><button class="text-primary hover:underline text-xs font-bold">View Profile</button></div></td>
+</tr>
+<tr class="hover:bg-primary-fixed/10 transition-colors group">
+<td class="px-8 py-4"><div class="flex flex-col"><span class="font-bold text-primary">Red Sea Port</span><span class="text-xs text-on-surface-variant">+252 63 8080808</span></div></td>
+<td class="px-6 py-4 text-sm">Berbera</td>
+<td class="px-6 py-4 text-sm font-medium">8</td>
+<td class="px-6 py-4 text-sm font-black text-primary">$1,500</td>
+<td class="px-6 py-4 text-sm">$187.50</td>
+<td class="px-6 py-4 text-sm">Today</td>
+<td class="px-6 py-4 text-sm">Mustafa Said</td>
+<td class="px-6 py-4"><span class="px-3 py-1 bg-surface-container-high text-on-surface-variant text-[10px] font-bold rounded-full uppercase">New</span></td>
+<td class="px-8 py-4"><div class="flex items-center gap-2"><button class="text-primary hover:underline text-xs font-bold">View Profile</button></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-8 py-6 flex items-center justify-between bg-surface-container-low/30 border-t border-outline-variant/10">
+<div class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Page 1 of 165</div>
+<div class="flex items-center gap-2">
+<button class="p-2 bg-surface-container-lowest rounded border border-outline-variant/20 hover:bg-surface-container-low transition-colors"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
+<button class="px-3 py-1 bg-primary text-white text-xs font-bold rounded">1</button>
+<button class="px-3 py-1 bg-surface-container-lowest text-xs font-bold rounded hover:bg-surface-container-low transition-colors">2</button>
+<button class="px-3 py-1 bg-surface-container-lowest text-xs font-bold rounded hover:bg-surface-container-low transition-colors">3</button>
+<button class="p-2 bg-surface-container-lowest rounded border border-outline-variant/20 hover:bg-surface-container-low transition-colors"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Navigation Shell (Bottom Nav Mobile) -->
+<nav class="md:hidden fixed bottom-6 left-6 right-6 h-16 bg-white/90 backdrop-blur-xl rounded-full shadow-[0_24px_40px_rgba(11,28,48,0.1)] flex items-center justify-around px-6 z-50">
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold uppercase">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">assessment</span>
+<span class="text-[10px] font-bold uppercase">Reports</span>
+</button>
+<button class="w-12 h-12 bg-primary rounded-full -mt-10 shadow-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="text-[10px] font-bold uppercase">Fleet</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold uppercase">More</span>
+</button>
+</nav>
+</body></html>

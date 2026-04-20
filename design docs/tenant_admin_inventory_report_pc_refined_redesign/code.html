@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Inventory Report | FleetCommand</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-dim": "#cbdbf5",
+                        "secondary-container": "#d5e3fc",
+                        "surface-bright": "#f8f9ff",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "on-background": "#0b1c30",
+                        "surface": "#f8f9ff",
+                        "on-surface": "#0b1c30",
+                        "on-primary-fixed-variant": "#304867",
+                        "tertiary-fixed": "#dae2fd",
+                        "on-primary-fixed": "#001c38",
+                        "primary-fixed": "#d3e4ff",
+                        "on-tertiary-container": "#8a92aa",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#d3e4fe",
+                        "inverse-surface": "#213145",
+                        "on-primary": "#ffffff",
+                        "tertiary": "#0e1629",
+                        "surface-container-lowest": "#ffffff",
+                        "on-primary-container": "#7b94b6",
+                        "on-tertiary-fixed-variant": "#3f465c",
+                        "primary-container": "#112c49",
+                        "on-secondary-container": "#57657a",
+                        "error": "#ba1a1a",
+                        "secondary-fixed": "#d5e3fc",
+                        "inverse-on-surface": "#eaf1ff",
+                        "error-container": "#ffdad6",
+                        "secondary": "#515f74",
+                        "primary": "#00172f",
+                        "tertiary-container": "#232b3f",
+                        "on-surface-variant": "#43474d",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "surface-tint": "#486080",
+                        "primary-fixed-dim": "#afc8ed",
+                        "outline": "#74777e",
+                        "tertiary-fixed-dim": "#bec6e0",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-fixed": "#131b2e",
+                        "surface-container": "#e5eeff",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "inverse-primary": "#afc8ed",
+                        "background": "#f8f9ff",
+                        "on-error": "#ffffff",
+                        "surface-container-low": "#eff4ff",
+                        "surface-container-high": "#dce9ff",
+                        "outline-variant": "#c4c6ce",
+                        "surface-container-highest": "#d3e4fe"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .kinetic-gradient { background: linear-gradient(135deg, #00172f 0%, #112c49 100%); }
+        .glass-effect { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- Sidebar Navigation -->
+<aside class="h-screen w-64 left-0 top-0 fixed bg-[#eff4ff] flex flex-col p-4 gap-2 shadow-none border-r border-[#c4c6ce]/15 z-[60]">
+<div class="mb-8 px-4">
+<span class="text-lg font-bold text-[#00172f] uppercase tracking-widest">FleetCommand</span>
+<p class="text-[10px] text-on-surface-variant font-bold tracking-tighter opacity-60">ENTERPRISE ADMIN</p>
+</div>
+<nav class="flex flex-col gap-1 flex-grow">
+<a class="text-[#43474d] px-4 py-2 flex items-center gap-3 hover:bg-[#d3e4ff]/30 rounded-full transition-transform duration-200 hover:translate-x-1 font-medium text-sm" href="#">
+<span class="material-symbols-outlined">dashboard</span> Overview
+            </a>
+<a class="text-[#43474d] px-4 py-2 flex items-center gap-3 hover:bg-[#d3e4ff]/30 rounded-full transition-transform duration-200 hover:translate-x-1 font-medium text-sm" href="#">
+<span class="material-symbols-outlined">analytics</span> Fleet Health
+            </a>
+<!-- Active State -->
+<a class="bg-[#d3e4ff] text-[#001c38] rounded-full px-4 py-2 flex items-center gap-3 font-semibold transition-transform duration-200 hover:translate-x-1 text-sm" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory_2</span> Inventory
+            </a>
+<a class="text-[#43474d] px-4 py-2 flex items-center gap-3 hover:bg-[#d3e4ff]/30 rounded-full transition-transform duration-200 hover:translate-x-1 font-medium text-sm" href="#">
+<span class="material-symbols-outlined">route</span> Route Analytics
+            </a>
+<a class="text-[#43474d] px-4 py-2 flex items-center gap-3 hover:bg-[#d3e4ff]/30 rounded-full transition-transform duration-200 hover:translate-x-1 font-medium text-sm" href="#">
+<span class="material-symbols-outlined">verified_user</span> Compliance
+            </a>
+</nav>
+<div class="mt-auto flex flex-col gap-1 border-t border-[#c4c6ce]/15 pt-4">
+<a class="text-[#43474d] px-4 py-2 flex items-center gap-3 hover:bg-[#d3e4ff]/30 rounded-full transition-transform duration-200 hover:translate-x-1 font-medium text-sm" href="#">
+<span class="material-symbols-outlined">contact_support</span> Support
+            </a>
+<a class="text-[#43474d] px-4 py-2 flex items-center gap-3 hover:bg-[#d3e4ff]/30 rounded-full transition-transform duration-200 hover:translate-x-1 font-medium text-sm" href="#">
+<span class="material-symbols-outlined">logout</span> Sign Out
+            </a>
+</div>
+</aside>
+<!-- Main Wrapper -->
+<div class="ml-64 min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex justify-between items-center w-full px-8 py-3 bg-[#f8f9ff] sticky top-0 z-50 shadow-[0_24px_40px_rgba(11,28,48,0.04)] font-inter antialiased tracking-tight">
+<div class="flex items-center gap-8">
+<span class="text-xl font-black text-[#00172f] -tracking-[0.02em]">FleetCommand</span>
+<nav class="hidden md:flex gap-6">
+<a class="text-[#43474d] font-medium hover:text-[#00172f] transition-colors duration-200" href="#">Dashboard</a>
+<a class="text-[#43474d] font-medium hover:text-[#00172f] transition-colors duration-200" href="#">Assets</a>
+<a class="text-[#43474d] font-medium hover:text-[#00172f] transition-colors duration-200" href="#">Maintenance</a>
+<a class="text-[#00172f] font-bold border-b-2 border-[#00172f] pb-1" href="#">Reports</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative hidden lg:block">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/50 text-sm">search</span>
+<input class="bg-surface-container-low border-none rounded-full py-1.5 pl-10 pr-4 text-xs w-64 focus:ring-1 focus:ring-primary" placeholder="Search data..." type="text"/>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-[#43474d] hover:text-[#00172f] transition-colors">notifications</button>
+<button class="material-symbols-outlined text-[#43474d] hover:text-[#00172f] transition-colors">help_outline</button>
+<button class="material-symbols-outlined text-[#43474d] hover:text-[#00172f] transition-colors">settings</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant/30">
+<img class="w-full h-full object-cover" data-alt="close up headshot of male corporate executive looking professional against office background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSwWEpRyqmcekKAyUWeDO-4vZq6T73Onm7Yf6nSrDMuOA2cq5Xxw5xfLS27PPshC9RhW9WGXoPtNa3L_mqWw38-NrhOMOHNne_MC2xsUC40R8t3YZtRtbTp711p1MLQtNod9F2pTfxYFIOb4AoOmkxN8gj2-V24d-u4F86AnDXNRkcodY2vK-pvxTrK4wYMtW3J2kaalNy3kfwCkZqnFVU9bIxiGRT88GtsoX0XsxbyrYEKtSgoJDcA69AKRMLZGrfpKLNm7cA2AXI"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow p-8 space-y-8">
+<!-- Page Header -->
+<section class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+<div class="space-y-1">
+<h1 class="text-3xl font-black text-primary -tracking-[0.03em]">Inventory Report</h1>
+<p class="text-on-surface-variant font-medium max-w-2xl">Track stock levels, movement, shrinkage risks, and fleet inventory performance.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 bg-surface-container-low hover:bg-surface-container-high text-primary px-4 py-2 rounded-md font-semibold text-sm transition-all duration-200">
+<span class="material-symbols-outlined text-sm">description</span> Export CSV
+                    </button>
+<button class="flex items-center gap-2 bg-surface-container-low hover:bg-surface-container-high text-primary px-4 py-2 rounded-md font-semibold text-sm transition-all duration-200">
+<span class="material-symbols-outlined text-sm">table_view</span> Export Excel
+                    </button>
+<button class="flex items-center gap-2 kinetic-gradient text-white px-5 py-2.5 rounded-md font-bold text-sm shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined text-sm">print</span> Print PDF
+                    </button>
+</div>
+</section>
+<!-- Sticky Filter Bar -->
+<section class="sticky top-[64px] z-40 bg-surface/80 glass-effect p-4 -mx-4 rounded-xl flex flex-wrap items-center gap-4 border-b border-transparent">
+<div class="flex-1 min-w-[200px]">
+<label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 ml-1">Date Range</label>
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-sm text-on-surface-variant">calendar_today</span>
+<select class="w-full bg-surface-container-lowest border-none rounded-md text-xs font-medium pl-10 pr-8 py-2 focus:ring-1 focus:ring-primary">
+<option>Last 30 Days</option>
+<option>Last 7 Days</option>
+<option>Current Quarter</option>
+<option>Year to Date</option>
+</select>
+</div>
+</div>
+<div class="flex-1 min-w-[150px]">
+<label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 ml-1">Product Type</label>
+<select class="w-full bg-surface-container-lowest border-none rounded-md text-xs font-medium px-3 py-2 focus:ring-1 focus:ring-primary">
+<option>All Types</option>
+<option>Beverages</option>
+<option>Grains</option>
+<option>Dairy</option>
+<option>Essentials</option>
+</select>
+</div>
+<div class="flex-1 min-w-[150px]">
+<label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 ml-1">Vehicle</label>
+<select class="w-full bg-surface-container-lowest border-none rounded-md text-xs font-medium px-3 py-2 focus:ring-1 focus:ring-primary">
+<option>All Fleet Units</option>
+<option>Truck-042 (Plate AD-301)</option>
+<option>Truck-118 (Plate XL-299)</option>
+<option>Van-009 (Plate MN-011)</option>
+</select>
+</div>
+<div class="flex-1 min-w-[150px]">
+<label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-1 ml-1">Stock Status</label>
+<select class="w-full bg-surface-container-lowest border-none rounded-md text-xs font-medium px-3 py-2 focus:ring-1 focus:ring-primary">
+<option>All Statuses</option>
+<option>Healthy</option>
+<option>Low Stock</option>
+<option>Out of Stock</option>
+</select>
+</div>
+<div class="flex items-end h-full pt-5">
+<button class="bg-primary text-white p-2 rounded-md hover:opacity-90">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+</section>
+<!-- KPI Cards Bento Grid -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+<!-- Total Units -->
+<div class="bg-surface-container-lowest p-5 rounded-md flex flex-col justify-between shadow-sm relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Total Units</span>
+<div class="flex items-end justify-between mt-2">
+<span class="text-3xl font-black text-primary tracking-tighter">42,891</span>
+<span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> 4%
+                        </span>
+</div>
+</div>
+<!-- Inventory Value -->
+<div class="bg-surface-container-lowest p-5 rounded-md flex flex-col justify-between shadow-sm relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Inv. Value (USD)</span>
+<div class="flex items-end justify-between mt-2">
+<span class="text-3xl font-black text-primary tracking-tighter">$1.2M</span>
+<span class="text-[10px] font-medium text-on-surface-variant">Est. Profit: 18%</span>
+</div>
+</div>
+<!-- Low Stock Items -->
+<div class="bg-surface-container-lowest p-5 rounded-md flex flex-col justify-between shadow-sm relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-amber-500"></div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Low Stock Items</span>
+<div class="flex items-end justify-between mt-2">
+<span class="text-3xl font-black text-amber-600 tracking-tighter">14</span>
+<div class="flex flex-col items-end">
+<span class="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">ALERT</span>
+</div>
+</div>
+</div>
+<!-- Vehicles Loaded -->
+<div class="bg-surface-container-lowest p-5 rounded-md flex flex-col justify-between shadow-sm relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Active Units</span>
+<div class="flex items-end justify-between mt-2">
+<span class="text-3xl font-black text-primary tracking-tighter">82%</span>
+<span class="text-[10px] font-medium text-on-surface-variant">156/190 Trucks</span>
+</div>
+</div>
+<!-- Fast Moving -->
+<div class="bg-surface-container-lowest p-5 rounded-md flex flex-col justify-between shadow-sm relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Fast Moving</span>
+<div class="flex items-end justify-between mt-2">
+<span class="text-3xl font-black text-primary tracking-tighter">9.1k</span>
+<span class="text-[10px] font-medium text-on-surface-variant">Beverages (Coke)</span>
+</div>
+</div>
+<!-- Variance Alerts -->
+<div class="bg-surface-container-lowest p-5 rounded-md flex flex-col justify-between shadow-sm relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-error"></div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Variance Risks</span>
+<div class="flex items-end justify-between mt-2">
+<span class="text-3xl font-black text-error tracking-tighter">0.8%</span>
+<span class="text-[10px] font-medium text-error">Shrinkage Risk</span>
+</div>
+</div>
+</section>
+<!-- Charts Section -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Stock Category Pie -->
+<div class="lg:col-span-4 bg-surface-container-low p-6 rounded-xl">
+<h3 class="text-sm font-bold text-primary mb-6 flex items-center justify-between">
+                        Stock by Category
+                        <span class="material-symbols-outlined text-sm text-on-surface-variant">info</span>
+</h3>
+<div class="aspect-square relative flex items-center justify-center">
+<div class="w-full h-full rounded-full border-[32px] border-primary-container relative">
+<div class="absolute inset-0 border-[32px] border-primary-fixed border-l-transparent border-t-transparent -rotate-12"></div>
+<div class="absolute inset-0 flex flex-col items-center justify-center -m-[32px]">
+<span class="text-2xl font-black text-primary">FMCG</span>
+<span class="text-[10px] font-bold text-on-surface-variant">DISTRIBUTION</span>
+</div>
+</div>
+</div>
+<div class="mt-6 space-y-2">
+<div class="flex items-center justify-between text-xs font-medium">
+<div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-primary"></div> Beverages</div>
+<span>42%</span>
+</div>
+<div class="flex items-center justify-between text-xs font-medium">
+<div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-primary-container"></div> Essentials</div>
+<span>28%</span>
+</div>
+<div class="flex items-center justify-between text-xs font-medium">
+<div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-primary-fixed"></div> Grains</div>
+<span>20%</span>
+</div>
+<div class="flex items-center justify-between text-xs font-medium">
+<div class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-surface-dim"></div> Other</div>
+<span>10%</span>
+</div>
+</div>
+</div>
+<!-- Movement Trends Line -->
+<div class="lg:col-span-8 bg-surface-container-low p-6 rounded-xl space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="text-sm font-bold text-primary">Inventory Movement Trend (Weekly)</h3>
+<div class="flex gap-2">
+<span class="text-[10px] font-bold px-2 py-1 rounded bg-primary text-white">Inbound</span>
+<span class="text-[10px] font-bold px-2 py-1 rounded bg-primary-fixed text-primary">Outbound</span>
+</div>
+</div>
+<div class="h-64 flex items-end gap-2 px-2 pb-8 border-b border-outline-variant/30 relative">
+<!-- Simulated Trend Line Graph (Using Gradient Overlays or SVG) -->
+<div class="absolute inset-0 bottom-8 flex items-end">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 800 200">
+<path d="M0,180 Q100,160 200,100 T400,60 T600,120 T800,40" fill="none" stroke="#00172f" stroke-width="3"></path>
+<path d="M0,190 Q100,170 200,130 T400,100 T600,140 T800,80" fill="none" stroke="#d3e4ff" stroke-dasharray="4" stroke-width="2"></path>
+</svg>
+</div>
+<!-- X-Axis Labels -->
+<div class="absolute bottom-0 inset-x-0 flex justify-between px-2 text-[10px] font-bold text-on-surface-variant">
+<span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span><span>SUN</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-4">
+<div class="bg-surface-container-lowest p-3 rounded-md">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase">Peak Day</p>
+<p class="text-lg font-bold text-primary">Thursday</p>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded-md">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase">Avg. Flow Rate</p>
+<p class="text-lg font-bold text-primary">1,240/hr</p>
+</div>
+<div class="bg-surface-container-lowest p-3 rounded-md">
+<p class="text-[10px] font-bold text-on-surface-variant uppercase">Stock Turnover</p>
+<p class="text-lg font-bold text-primary">4.2x</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Inventory Table -->
+<section class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden border border-outline-variant/10">
+<div class="p-6 border-b border-surface-container-low flex items-center justify-between">
+<h3 class="text-lg font-bold text-primary">Real-Time Inventory Status</h3>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+<span class="text-xs font-medium text-on-surface-variant">Healthy</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-amber-500"></span>
+<span class="text-xs font-medium text-on-surface-variant">Low</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span class="text-xs font-medium text-on-surface-variant">Stockout</span>
+</div>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-high border-b border-outline-variant/15">
+<tr>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Product</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Type</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Vehicle/Plate</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right">Qty</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right">Unit Price</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right">Total Value</th>
+<th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<!-- Row 1 -->
+<tr class="hover:bg-primary-fixed/20 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-low flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="clean product shot of a branded soda bottle on white background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3uJvfx5cf6y3Zqp77PbNhKbkGPzVLMX_vh_sZMSEe7EjnKDWnXYgWJ5mNc43dEEp9o6oIlR77kUG7aW8GghrFpM6hoLZxKF7d6dTd60-6nH_e_Z-k1kYhvxS76GnnNusiCddwfZ8WWAO13yA8G0ApiCX3hpvS42_r-kRtRPxdfRt4E6kMJ_zU0faY35GlcvYhMp03MB99m_gYwNja1CglDjugu46C-CaJBQKZ9MyOIfDevrWhiA5-NciRxhoG-lK_0Azb6o1VJy1Q"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-bold text-primary">Carbonated Cola (500ml)</span>
+<span class="text-[10px] text-on-surface-variant">SKU: COL-500-NG</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-xs font-medium">Beverages</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-primary">Truck-042</span>
+<span class="text-[10px] text-on-surface-variant">AD-301-LAG</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs font-bold text-primary text-right">1,240</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant text-right">$0.45</td>
+<td class="px-6 py-4 text-xs font-bold text-primary text-right">$558.00</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase">Healthy</span>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-primary-fixed/20 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-low flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="high quality grains of basmati rice inside a transparent sack" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOemlze76TzSG_5GaVruH3cCnI-N157NRj3hTBS7EjkDXf1eu5rJO7aNaktakZr6mak0XJvL1jGPCyccn1Yz8Rz3WcvNemWjfvmi_CLY0Wu0fLBNF4LL4PwNsKuthapQMLAEBzOc0nolJXf3HpGLbOZykE5XabGNrQQ4kPO3Oj-rKXCdtvB8MsYvN94lnTz2Is87x8KsT5BieJBD1M8JT73fUktZuEPJ71FL0dfQYl218qZ7HCY_qj824V5ZcHkiKhgB2nX1wUxhBd"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-bold text-primary">Long Grain Rice (25kg)</span>
+<span class="text-[10px] text-on-surface-variant">SKU: RICE-25K-PREM</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-xs font-medium">Grains</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-primary">Truck-118</span>
+<span class="text-[10px] text-on-surface-variant">XL-299-ABJ</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs font-bold text-primary text-right">12</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant text-right">$24.00</td>
+<td class="px-6 py-4 text-xs font-bold text-primary text-right">$288.00</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-amber-100 text-amber-800 text-[10px] font-black uppercase">Low Stock</span>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-primary-fixed/20 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-low flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="stack of laundry detergent bottles in blue packaging" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9aghEZRebqE4unhmWDsOyw80VevDXSfhCs4VjbKtX6f1l8sDqMjr8CfpIiH1wUCLFDly9-mQdDPmciviMOk_NGsNeZ_ezypWnoG1Um1Is-AVTko95P6D3BlrybhyVpnEaUFxoKkRwioJ-4WBz_1T98yd8J86-6rRc9oix4issd_NXNx4zFiqNBWDNJKMUY7HIWZWvKtNUN7w_UdPqosmiU35eQu9MTbzzmNyf8gp8sViAJ5wtEEHyxURirFQm6vYBvw-y7fu2AasU"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-bold text-primary">Premium Detergent (1L)</span>
+<span class="text-[10px] text-on-surface-variant">SKU: DET-1L-HHC</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-xs font-medium">Essentials</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-primary">Van-009</span>
+<span class="text-[10px] text-on-surface-variant">MN-011-PHC</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs font-bold text-primary text-right">0</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant text-right">$1.80</td>
+<td class="px-6 py-4 text-xs font-bold text-primary text-right">$0.00</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-red-100 text-red-800 text-[10px] font-black uppercase">Out of Stock</span>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-primary-fixed/20 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-surface-container-low flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="pack of bottled drinking water arranged in rows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC92gjwcWFliMHT-o8r-TUuu3ojEjB8EihrMyoaY9TR9lSkqwIY-MQtIHPU6EMRBYDtXpt58PZ3lkM7oryyejNXR42agSwygZF0AKOGrkkOXBUUbwtPjH3Gsn0jUtj2tLDD4vzXCCLgngZmg6BHWCG7JSJI8xE7vTSkTdsy5gTukV4TXvX6K0D-HeelhlJrjnGjANWr3aUeucdhSaiSybo8_NIWcKR59O1pa-IiELdXqt--zf3pUK-U1O1dh7jFGAaPkH54bg84TALb"/>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-bold text-primary">Spring Water (750ml)</span>
+<span class="text-[10px] text-on-surface-variant">SKU: WAT-750-SPR</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-xs font-medium">Beverages</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-xs font-bold text-primary">Warehouse-A</span>
+<span class="text-[10px] text-on-surface-variant">LOC: WH-110</span>
+</div>
+</td>
+<td class="px-6 py-4 text-xs font-bold text-primary text-right">4,500</td>
+<td class="px-6 py-4 text-xs text-on-surface-variant text-right">$0.20</td>
+<td class="px-6 py-4 text-xs font-bold text-primary text-right">$900.00</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-blue-100 text-blue-800 text-[10px] font-black uppercase">Overstocked</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 bg-surface-container-low flex items-center justify-between border-t border-outline-variant/15">
+<span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Showing 1-10 of 428 products</span>
+<div class="flex gap-1">
+<button class="w-8 h-8 rounded bg-surface-container-lowest border border-outline-variant/30 flex items-center justify-center material-symbols-outlined text-sm">chevron_left</button>
+<button class="w-8 h-8 rounded kinetic-gradient text-white flex items-center justify-center text-xs font-bold shadow-md">1</button>
+<button class="w-8 h-8 rounded bg-surface-container-lowest border border-outline-variant/30 flex items-center justify-center text-xs font-bold">2</button>
+<button class="w-8 h-8 rounded bg-surface-container-lowest border border-outline-variant/30 flex items-center justify-center text-xs font-bold">3</button>
+<button class="w-8 h-8 rounded bg-surface-container-lowest border border-outline-variant/30 flex items-center justify-center material-symbols-outlined text-sm">chevron_right</button>
+</div>
+</div>
+</section>
+<!-- Movement History -->
+<section class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+<div class="xl:col-span-12">
+<div class="bg-surface-container-low rounded-xl overflow-hidden">
+<div class="p-6">
+<h3 class="text-sm font-bold text-primary uppercase tracking-widest mb-4">Recent Movement History</h3>
+<div class="space-y-3">
+<!-- Movement Entry 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-md flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+<span class="material-symbols-outlined">download</span>
+</div>
+<div>
+<p class="text-sm font-bold text-primary">Inbound Load - Delivery #8821</p>
+<p class="text-[10px] font-medium text-on-surface-variant">Warehouse-A → Truck-042 | 400 Units Loaded</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-xs font-bold text-primary">Oct 24, 08:32 AM</p>
+<p class="text-[10px] text-on-surface-variant font-medium">Status: Completed</p>
+</div>
+</div>
+<!-- Movement Entry 2 -->
+<div class="bg-surface-container-lowest p-4 rounded-md flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+<span class="material-symbols-outlined">local_shipping</span>
+</div>
+<div>
+<p class="text-sm font-bold text-primary">Sales Distribution - Outlet POS</p>
+<p class="text-[10px] font-medium text-on-surface-variant">Truck-118 → City Mart Supermarket | 42 Units Sold</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-xs font-bold text-primary">Oct 24, 10:15 AM</p>
+<p class="text-[10px] text-on-surface-variant font-medium">Status: In-Transit</p>
+</div>
+</div>
+<!-- Movement Entry 3 -->
+<div class="bg-surface-container-lowest p-4 rounded-md flex items-center justify-between shadow-sm">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center">
+<span class="material-symbols-outlined">inventory</span>
+</div>
+<div>
+<p class="text-sm font-bold text-primary">Inventory Adjustment - Manual</p>
+<p class="text-[10px] font-medium text-on-surface-variant">Van-009 | -2 Units (Damaged/Leaking)</p>
+</div>
+</div>
+<div class="text-right">
+<p class="text-xs font-bold text-primary">Oct 24, 11:45 AM</p>
+<p class="text-[10px] text-on-surface-variant font-medium">Verified by: Admin_Kalu</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Page Footer Overlay -->
+<footer class="mt-auto px-8 py-4 border-t border-outline-variant/10 bg-surface-container-lowest flex items-center justify-between text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+<div class="flex gap-6">
+<span>© 2024 FleetCommand Systems</span>
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-colors" href="#">System Status</a>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+<span>All Systems Operational</span>
+</div>
+</footer>
+</div>
+<!-- Mobile Bottom Navigation (Visible on small screens) -->
+<nav class="md:hidden fixed bottom-6 inset-x-6 h-16 glass-effect bg-surface-container-highest/80 rounded-full shadow-[0_40px_40px_rgba(11,28,48,0.06)] flex items-center justify-around px-6 z-[100] border border-white/20">
+<button class="material-symbols-outlined text-primary-container">dashboard</button>
+<button class="material-symbols-outlined text-primary-container">analytics</button>
+<div class="w-12 h-12 kinetic-gradient rounded-full -mt-10 flex items-center justify-center text-white shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">add</span>
+</div>
+<button class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">inventory_2</button>
+<button class="material-symbols-outlined text-primary-container">settings</button>
+</nav>
+</body></html>

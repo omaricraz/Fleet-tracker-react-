@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Halyeey Driver Sales POS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-surface": "#213145",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "on-error": "#ffffff",
+                        "surface-variant": "#d3e4fe",
+                        "surface-tint": "#486080",
+                        "outline-variant": "#c4c6ce",
+                        "on-primary-fixed": "#001c38",
+                        "on-tertiary-fixed-variant": "#3f465c",
+                        "surface-container": "#e5eeff",
+                        "secondary-container": "#d5e3fc",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-surface": "#0b1c30",
+                        "primary-fixed": "#d3e4ff",
+                        "on-secondary-fixed-variant": "#3a485b",
+                        "on-primary-container": "#7b94b6",
+                        "surface-container-low": "#eff4ff",
+                        "on-surface-variant": "#43474d",
+                        "surface-container-high": "#dce9ff",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed": "#d5e3fc",
+                        "on-primary": "#ffffff",
+                        "inverse-primary": "#afc8ed",
+                        "surface": "#f8f9ff",
+                        "secondary": "#515f74",
+                        "on-tertiary": "#ffffff",
+                        "outline": "#74777e",
+                        "on-secondary": "#ffffff",
+                        "background": "#f8f9ff",
+                        "tertiary-fixed-dim": "#bec6e0",
+                        "on-error-container": "#93000a",
+                        "on-tertiary-container": "#8a92aa",
+                        "on-background": "#0b1c30",
+                        "primary-fixed-dim": "#afc8ed",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "tertiary-container": "#232b3f",
+                        "surface-dim": "#cbdbf5",
+                        "error": "#ba1a1a",
+                        "inverse-on-surface": "#eaf1ff",
+                        "surface-container-lowest": "#ffffff",
+                        "primary": "#00172f",
+                        "tertiary-fixed": "#dae2fd",
+                        "primary-container": "#112c49",
+                        "surface-bright": "#f8f9ff",
+                        "on-secondary-container": "#57657a",
+                        "on-primary-fixed-variant": "#304867",
+                        "tertiary": "#0e1629",
+                        "on-tertiary-fixed": "#131b2e"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="w-full sticky top-0 z-50 bg-[#f8f9ff] dark:bg-[#00172f]">
+<div class="flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="active:scale-95 duration-200">
+<span class="material-symbols-outlined text-[#00172f] dark:text-[#eff4ff]">arrow_back</span>
+</button>
+<h1 class="font-['Inter'] font-semibold tracking-tight text-lg text-[#00172f] dark:text-[#eff4ff]">Fleet Sales</h1>
+</div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden sm:block">
+<p class="text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant">Active Trip</p>
+<p class="text-xs font-semibold text-primary">#1042 - Hargeisa East</p>
+</div>
+<div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center overflow-hidden border-2 border-primary-fixed">
+<img class="w-full h-full object-cover" data-alt="professional headshot of a delivery driver in a neat uniform with a friendly expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6Xhw38AH9itHJNOCuLp58lY3agS3Drv2Y_pcFJ8DVCoJbqkT2Kxo1G-2bA9wpL1ixQPN-yphWA-ZL1ZOQThpFMu9OFQftHm5x3e3czgaEqcgRIXGFq7m6mSC7E3IWfodYezvLF63UK3XGcHiesyxFqcAMZMBqWGEu7nH4wlEFbSQMtXmfHtiCSHL1lo1GAi6CqjwZtASqSvPDhSEopByryS3XGbY9ES6CkAVR5lOCldqwRScaZnNx5DD7JHSYKrZRtGF3q-TfXlEi"/>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-md mx-auto px-4 pt-4">
+<!-- Tab Navigation -->
+<nav class="flex p-1 bg-surface-container-low rounded-xl mb-6">
+<button class="flex-1 py-3 text-sm font-bold bg-surface-container-lowest text-primary rounded-lg shadow-sm">New Sale</button>
+<button class="flex-1 py-3 text-sm font-medium text-on-surface-variant hover:text-primary transition-colors">History</button>
+</nav>
+<!-- Customer Selector -->
+<section class="mb-6">
+<div class="flex items-center justify-between mb-3">
+<h2 class="text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant">Current Stop</h2>
+<span class="text-[10px] font-medium text-primary px-2 py-0.5 bg-primary-fixed rounded-full">Route Optimized</span>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between group cursor-pointer active:scale-[0.98] transition-all">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">storefront</span>
+</div>
+<div>
+<h3 class="font-bold text-primary">Zamzam Store</h3>
+<p class="text-xs text-on-surface-variant">34 Airport Road, Hargeisa</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant">expand_more</span>
+</div>
+</section>
+<!-- Product Grid -->
+<section class="mb-8">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant">Inventory</h2>
+<div class="flex gap-2">
+<button class="p-2 bg-surface-container-low rounded-lg text-primary">
+<span class="material-symbols-outlined text-lg">search</span>
+</button>
+<button class="p-2 bg-surface-container-low rounded-lg text-primary">
+<span class="material-symbols-outlined text-lg">filter_list</span>
+</button>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<!-- Product Card 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex flex-col items-center text-center relative overflow-hidden group">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-20 h-20 mb-3 rounded-lg overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="clean minimal bottle of premium mineral water on a reflective surface with blue lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCi4zZxX1LAVU-WLYmRKqLyIKsOZAiOswo0cB-THivQEWFbr8fiBa8s0R7ZeGWBC9WbdTfdsRH4RsrxMw_tLY6jFUP8iP1v-f21DuUhXmVC_vlwHVu5Ui-M5DhbN7UrY5cEWdeq5OYYSVwg-yEZA-fRCxMztE5pbYaGyMYbiEGdacy7vxxbCXqfqtoct0WgXk4GMHS211LZMEz68io5RC4Fpm1qZjQobiqoAeG8dLZC_DjzA6ZC679rl7u5Sz8xzrlja5TfdEWdNQEt"/>
+</div>
+<h4 class="text-sm font-bold text-on-surface mb-1">Water 500ml</h4>
+<p class="text-xs font-semibold text-primary mb-3">$0.50</p>
+<div class="flex items-center bg-surface-container-low rounded-lg p-1 w-full justify-between">
+<button class="w-8 h-8 flex items-center justify-center bg-surface-container-lowest rounded-md text-primary active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-sm">remove</span>
+</button>
+<span class="text-sm font-bold mx-2">12</span>
+<button class="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-md active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+<!-- Product Card 2 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex flex-col items-center text-center relative overflow-hidden group">
+<div class="w-20 h-20 mb-3 rounded-lg overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="large sack of long grain white rice standing upright on a wooden pallet" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0YLLgkxdZeNuwd0OJV1qWbHezOsKqm3TEZ6MJoG8x5X5HJ2xwCffWAMaExDxgd3RhLJE3-Uy07jDk5lZoqiW8vLb8Y6IfzBEdACKEJ434xgW0MhZb4FMRvQZXKpq7foQ_d8lukVrApor9lGKiXOO4UjNqC1l_6jAwi86INl48V6TWjujOIsGZyGVKloHB9UwhZtcBFrOgyF4-SZXe-iiy_tbsbzbyLOz6Ke3jYb7-26OEcAu7D-Y7BsCOGoHYCE7kzEaSiLiOTXEa"/>
+</div>
+<h4 class="text-sm font-bold text-on-surface mb-1">Rice 25kg</h4>
+<p class="text-xs font-semibold text-primary mb-3">$24.00</p>
+<div class="flex items-center bg-surface-container-low rounded-lg p-1 w-full justify-between">
+<button class="w-8 h-8 flex items-center justify-center bg-surface-container-lowest rounded-md text-primary">
+<span class="material-symbols-outlined text-sm">remove</span>
+</button>
+<span class="text-sm font-bold mx-2">0</span>
+<button class="w-8 h-8 flex items-center justify-center bg-surface-container-lowest rounded-md text-primary">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+<!-- Product Card 3 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex flex-col items-center text-center relative overflow-hidden group">
+<div class="w-20 h-20 mb-3 rounded-lg overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="cardboard box containing multiple packs of colorful fruit juice" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC2eOjFYl8gT0OzcQ-FD8w0LXdNxHIaBc9mO-OSr3ifdNcGakksZJfU6EN2V1aqll7cLCnpV6fSZ1sOJ-4oe1NHLP_qCsI6MQGxaO9OxGjiVNJn5zDQ6eFax9_E_FO5bgK9ipGGMPtACiWdC3U2VA-DO-1JUMCal-V4p-nDJEF9vGCI0xrFkvyzJZaUmWFn4QetVMavdhCJc9v6wXKNvByH6y0YJME7KS37e03v3Ytynq80yPdkUtNSuBtOTZTxMLD6EVX7JXXQs0Dn"/>
+</div>
+<h4 class="text-sm font-bold text-on-surface mb-1">Juice Box</h4>
+<p class="text-xs font-semibold text-primary mb-3">$12.50</p>
+<div class="flex items-center bg-surface-container-low rounded-lg p-1 w-full justify-between">
+<button class="w-8 h-8 flex items-center justify-center bg-surface-container-lowest rounded-md text-primary">
+<span class="material-symbols-outlined text-sm">remove</span>
+</button>
+<span class="text-sm font-bold mx-2">3</span>
+<button class="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-md">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+<!-- Product Card 4 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex flex-col items-center text-center relative overflow-hidden group">
+<div class="w-20 h-20 mb-3 rounded-lg overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="clear plastic jug of golden sunflower cooking oil in bright natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQjj8Hv_0XrARep5z8xwMjgKcAX6wsmGcwaR-W16rG8x9kxIq2L9IUzi5ICx2E8urBNE1RJS0VgKm8Ihon-H9FNnRaVfFSCfw2Fyc_acHqtfCeYO-mtgDu-ewO8oP6zUz8FX2gG8PpwZGZCgrdr5SG-AWWsnehMe6c1BQGFGdfMjEMK2IG3be802OmhekPXfZLVXFMGDTC3GBqaSsGViDBYfHrZf4QSMU6tpXZFZzoVxctCFOQuB48kt4qqPTaSZ6IPmee-aZj5SM1"/>
+</div>
+<h4 class="text-sm font-bold text-on-surface mb-1">Cooking Oil</h4>
+<p class="text-xs font-semibold text-primary mb-3">$8.20</p>
+<div class="flex items-center bg-surface-container-low rounded-lg p-1 w-full justify-between">
+<button class="w-8 h-8 flex items-center justify-center bg-surface-container-lowest rounded-md text-primary">
+<span class="material-symbols-outlined text-sm">remove</span>
+</button>
+<span class="text-sm font-bold mx-2">1</span>
+<button class="w-8 h-8 flex items-center justify-center bg-primary text-on-primary rounded-md">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Dynamic History Section Preview (Visible below fold) -->
+<section class="opacity-40 select-none pb-12">
+<h2 class="text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant mb-4">Recent History</h2>
+<div class="bg-surface-container-lowest p-4 rounded-xl mb-3 flex items-center justify-between border-l-4 border-primary">
+<div class="flex items-center gap-3">
+<div class="text-primary font-bold">10:45 AM</div>
+<div>
+<div class="font-bold">Barwaaqo Shop</div>
+<div class="text-[10px] text-on-surface-variant">PAID • RECEIPT #8841</div>
+</div>
+</div>
+<div class="text-right">
+<div class="font-bold text-primary">$450.00</div>
+<div class="text-[10px] text-green-600 font-bold">SYNCED</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Cart Summary Floating Bar -->
+<div class="fixed bottom-24 left-4 right-4 z-40">
+<div class="bg-primary text-white rounded-2xl p-4 flex items-center justify-between shadow-[0px_12px_24px_rgba(0,23,47,0.25)] border border-white/10 backdrop-blur-md bg-gradient-to-br from-primary to-primary-container">
+<div class="flex flex-col">
+<span class="text-[10px] font-bold uppercase tracking-widest text-on-primary-container opacity-80">Current Cart</span>
+<span class="text-lg font-bold">16 Items | $43.50</span>
+</div>
+<button class="bg-primary-fixed text-on-primary-fixed px-6 py-3 rounded-xl font-bold flex items-center gap-2 active:scale-95 transition-all">
+<span class="material-symbols-outlined text-lg">shopping_cart_checkout</span>
+                Record Sale
+            </button>
+</div>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-4 left-4 right-4 z-50 rounded-xl bg-white/80 dark:bg-[#112c49]/80 backdrop-blur-xl shadow-[0px_24px_40px_rgba(11,28,48,0.06)]">
+<div class="flex justify-around items-center w-full px-2 py-3">
+<!-- Home -->
+<button class="flex flex-col items-center justify-center text-[#43474d] dark:text-[#c4c6ce] px-4 py-1 hover:opacity-80 transition-opacity active:scale-98 duration-150">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['Inter'] text-[10px] font-medium tracking-[0.05em] uppercase mt-1">Home</span>
+</button>
+<!-- Trip -->
+<button class="flex flex-col items-center justify-center text-[#43474d] dark:text-[#c4c6ce] px-4 py-1 hover:opacity-80 transition-opacity active:scale-98 duration-150">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="font-['Inter'] text-[10px] font-medium tracking-[0.05em] uppercase mt-1">Trip</span>
+</button>
+<!-- Sales (Active) -->
+<button class="flex flex-col items-center justify-center bg-[#d3e4ff] dark:bg-[#004a77] text-[#001c38] dark:text-[#d3e4ff] rounded-2xl px-4 py-1 active:scale-98 duration-150">
+<span class="material-symbols-outlined">sell</span>
+<span class="font-['Inter'] text-[10px] font-medium tracking-[0.05em] uppercase mt-1">Sales</span>
+</button>
+<!-- Requests -->
+<button class="flex flex-col items-center justify-center text-[#43474d] dark:text-[#c4c6ce] px-4 py-1 hover:opacity-80 transition-opacity active:scale-98 duration-150">
+<span class="material-symbols-outlined">pending_actions</span>
+<span class="font-['Inter'] text-[10px] font-medium tracking-[0.05em] uppercase mt-1">Requests</span>
+</button>
+<!-- Profile -->
+<button class="flex flex-col items-center justify-center text-[#43474d] dark:text-[#c4c6ce] px-4 py-1 hover:opacity-80 transition-opacity active:scale-98 duration-150">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['Inter'] text-[10px] font-medium tracking-[0.05em] uppercase mt-1">Profile</span>
+</button>
+</div>
+</nav>
+</body></html>

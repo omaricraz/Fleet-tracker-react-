@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FleetOps | Driver Request</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#c4c6ce",
+                        "on-error-container": "#93000a",
+                        "primary": "#00172f",
+                        "on-tertiary-fixed": "#131b2e",
+                        "background": "#f8f9ff",
+                        "surface-variant": "#d3e4fe",
+                        "on-background": "#0b1c30",
+                        "surface-container": "#e5eeff",
+                        "outline": "#74777e",
+                        "inverse-on-surface": "#eaf1ff",
+                        "primary-fixed-dim": "#afc8ed",
+                        "tertiary-fixed": "#dae2fd",
+                        "on-surface-variant": "#43474d",
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#001c38",
+                        "surface-container-low": "#eff4ff",
+                        "secondary-container": "#d5e3fc",
+                        "on-error": "#ffffff",
+                        "surface": "#f8f9ff",
+                        "on-secondary": "#ffffff",
+                        "tertiary": "#0e1629",
+                        "surface-tint": "#486080",
+                        "inverse-surface": "#213145",
+                        "secondary-fixed-dim": "#b9c7df",
+                        "tertiary-container": "#232b3f",
+                        "primary-fixed": "#d3e4ff",
+                        "secondary": "#515f74",
+                        "on-secondary-fixed": "#0d1c2e",
+                        "surface-bright": "#f8f9ff",
+                        "surface-dim": "#cbdbf5",
+                        "surface-container-highest": "#d3e4fe",
+                        "on-tertiary-fixed-variant": "#3f465c",
+                        "on-secondary-container": "#57657a",
+                        "on-surface": "#0b1c30",
+                        "tertiary-fixed-dim": "#bec6e0",
+                        "on-primary-fixed-variant": "#304867",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#dce9ff",
+                        "inverse-primary": "#afc8ed",
+                        "on-tertiary": "#ffffff",
+                        "primary-container": "#112c49",
+                        "on-tertiary-container": "#8a92aa",
+                        "on-secondary-fixed": "#d5e3fc",
+                        "on-secondary-fixed-variant": "#3a485b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- TopNavBar -->
+<header class="bg-slate-50 dark:bg-[#00172f] text-[#00172f] dark:text-slate-100 font-['Inter'] tracking-tight font-semibold flex justify-between items-center w-full px-6 h-16 max-w-full sticky top-0 z-50 no-border bg-[#eff4ff] dark:bg-[#112c49] flat no shadows">
+<div class="text-2xl font-black tracking-tighter text-[#00172f] dark:text-white">FleetOps</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-slate-500">notifications</span>
+<div class="w-8 h-8 rounded-full overflow-hidden bg-primary-fixed">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="professional headshot of a middle-aged fleet driver wearing a clean uniform with soft studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_pNSAaypSQ5BzgQJ2nXHkIZRH8u9O-RFqQTrkWtW8rIxQ0E-q8YT5Hv0TwJcQ8oyyIoewDE9g5onHyoJxJGeQRE-EK21yUr6tPbbip0Lrnhc86YZu0rrW-AJ29XslLapTKLTTmhE3FhOuovIAIT0FNriJ9hGg9_q5LLublu88LCZmE94iWeIzgUslsNlt9BIYpV65Oy5kLNAg18Td2UP8wBJhPnSL-PnLePCsRpUk1tk4sEKlnw4Sz5dxBKwfzo0Lh7n-FwPQwEO4"/>
+</div>
+</div>
+</header>
+<main class="max-w-md mx-auto px-6 pt-8 space-y-8">
+<!-- Page Title & Kinetic Welcome -->
+<section>
+<h1 class="text-3xl font-extrabold tracking-tight text-primary">New Request</h1>
+<p class="text-on-surface-variant text-sm mt-1">Submit fuel or maintenance logs for Asset #8821</p>
+</section>
+<!-- Dynamic Form Container -->
+<div class="bg-surface-container-low rounded-xl p-1 flex mb-6">
+<button class="flex-1 py-3 px-4 rounded-xl text-sm font-bold bg-surface-container-lowest text-primary shadow-sm">
+                Fuel
+            </button>
+<button class="flex-1 py-3 px-4 rounded-xl text-sm font-medium text-on-surface-variant hover:bg-surface-container-high transition-colors">
+                Maintenance
+            </button>
+</div>
+<!-- Fuel Form Body (Active State) -->
+<form class="space-y-6">
+<div class="grid grid-cols-1 gap-6">
+<!-- KPI Input Style for Mobile POS -->
+<div class="bg-surface-container-lowest p-6 rounded-xl space-y-4">
+<div class="flex flex-col">
+<label class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant mb-1">Requested Litres</label>
+<input class="w-full text-4xl font-black tracking-tighter border-none p-0 focus:ring-0 placeholder-surface-dim bg-transparent" placeholder="0.00" type="number"/>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl space-y-4">
+<div class="flex flex-col">
+<label class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant mb-1">Cost per Litre (USD)</label>
+<input class="w-full text-2xl font-bold tracking-tight border-none p-0 focus:ring-0 placeholder-surface-dim bg-transparent" placeholder="0.000" type="number"/>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded-xl border-l-4 border-primary">
+<label class="text-[10px] uppercase tracking-widest font-bold text-on-surface-variant mb-2 block">Additional Notes</label>
+<textarea class="w-full border-none p-0 focus:ring-0 text-sm bg-transparent h-20 resize-none" placeholder="e.g. Full tank at Shell Station #4..."></textarea>
+</div>
+<!-- Action Button: Image Upload -->
+<button class="w-full flex items-center justify-center gap-3 py-4 rounded-xl bg-surface-container-high text-primary font-semibold border-2 border-dashed border-outline-variant hover:bg-surface-container-lowest transition-all" type="button">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">photo_camera</span>
+<span>Upload Receipt/Gauge</span>
+</button>
+</div>
+<!-- Primary Submit Button -->
+<button class="w-full py-5 rounded-xl bg-gradient-to-br from-primary to-primary-container text-white font-bold text-lg shadow-xl active:scale-95 duration-150 transition-all flex items-center justify-center gap-2" type="submit">
+<span>Submit Fuel Request</span>
+<span class="material-symbols-outlined">send</span>
+</button>
+</form>
+<!-- Recent Requests Section (Bento Style) -->
+<section class="pt-4">
+<div class="flex items-center justify-between mb-4 px-1">
+<h2 class="text-sm font-bold uppercase tracking-widest text-on-surface-variant">Recent Requests</h2>
+<span class="text-xs font-semibold text-primary underline">View All</span>
+</div>
+<div class="space-y-3">
+<!-- Request Item 1 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between transition-colors hover:bg-primary-fixed/20">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">local_gas_station</span>
+</div>
+<div>
+<div class="text-sm font-bold">Fuel Log: 45.2L</div>
+<div class="text-[10px] font-medium text-on-surface-variant">OCT 24, 2023 • 09:12 AM</div>
+</div>
+</div>
+<div class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-bold uppercase">Pending</div>
+</div>
+<!-- Request Item 2 -->
+<div class="bg-surface-container-lowest p-4 rounded-xl flex items-center justify-between transition-colors hover:bg-primary-fixed/20">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">build</span>
+</div>
+<div>
+<div class="text-sm font-bold">Brake Inspection</div>
+<div class="text-[10px] font-medium text-on-surface-variant">OCT 22, 2023 • 04:45 PM</div>
+</div>
+</div>
+<div class="px-3 py-1 rounded-full bg-green-100 text-green-800 text-[10px] font-bold uppercase">Approved</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Shell) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-6 pb-8 bg-white/80 dark:bg-[#112c49]/80 backdrop-blur-xl fixed bottom-4 inset-x-4 rounded-3xl z-50 h-16 no-border shadow-[0_24px_40px_-12px_rgba(11,28,48,0.06)]">
+<div class="text-slate-500 dark:text-slate-400 flex flex-col items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="text-[10px] uppercase tracking-widest font-bold">Home</span>
+</div>
+<div class="bg-[#d3e4ff] text-[#001c38] rounded-2xl p-2 flex flex-col items-center justify-center min-w-[64px] active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="add_circle" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+<span class="text-[10px] uppercase tracking-widest font-bold">Submit</span>
+</div>
+<div class="text-slate-500 dark:text-slate-400 flex flex-col items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="text-[10px] uppercase tracking-widest font-bold">History</span>
+</div>
+<div class="text-slate-500 dark:text-slate-400 flex flex-col items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="text-[10px] uppercase tracking-widest font-bold">Profile</span>
+</div>
+</nav>
+</body></html>
