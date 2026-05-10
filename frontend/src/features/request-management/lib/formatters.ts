@@ -13,7 +13,7 @@ export function formatRequestCreatedAt(iso: string) {
   }
 }
 
-export function formatLitreCost(value: number | null) {
+export function formatRequestCost(value: number | null) {
   if (value === null || Number.isNaN(value)) return '—'
   return new Intl.NumberFormat(undefined, {
     style: 'currency',
@@ -31,5 +31,5 @@ export function formatRequestedSummary(request: FleetRequest) {
   if (request.type === 'maintenance') {
     return request.maintenance_requested?.trim() || '—'
   }
-  return request.inventory_requested?.trim() || '—'
+  return '—'
 }

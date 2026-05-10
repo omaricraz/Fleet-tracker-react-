@@ -1,20 +1,66 @@
+import {
+  approveFleetRequest,
+  createFleetRequest,
+  listFleetRequests,
+  listMyFleetRequests,
+  rejectFleetRequest,
+  type FleetRequestApiRecord,
+} from '@/services/api/requests'
+import { listDrivers } from '@/services/api/drivers'
 import type {
   FleetRequest,
   PaginatedResult,
   RequestListQuery,
   RequestMetrics,
   RequestStatus,
+  RequestType,
 } from '../types'
-import { mockRequestSeed } from '../mock/mockRequests'
 
-/** Flip to `false` when a real backend is wired via `httpListRequests` / mutation helpers below. */
-const USE_MOCK_REQUEST_API =
-  import.meta.env.VITE_USE_MOCK_REQUEST_API !== 'false'
+function pickString(v: unknown): string {
+  if (typeof v === 'string') return v
+  if (v == null) return ''
+  return String(v)
+}
 
-let mockStore: FleetRequest[] = [...mockRequestSeed]
+function normalizeFleetRequest(r: FleetRequestApiRecord): FleetRequest {
+  const driverRaw =
+    r.driver && typeof r.driver === 'object'
+      ? (r.driver as Record<string, unknown>)
+      : null
+  const driverId =
+    driverRaw && typeof driverRaw.id === 'number'
+      ? String(driverRaw.id)
+      : typeof r.driver_id === 'number'
+        ? String(r.driver_id)
+        : ''
+  const driverName =
+    driverRaw && typeof driverRaw.full_name === 'string'
+      ? driverRaw.full_name
+      : '—'
 
-function delay(ms: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms))
+  const typeStr = pickString(r.type).toLowerCase()
+  const statusStr = pickString(r.status).toLowerCase()
+
+  return {
+    id: String(r.id),
+    display_id: pickString(r.display_id) || `REQ-${r.id}`,
+    type: (['fuel', 'maintenance'].includes(typeStr) ? typeStr : 'maintenance') as RequestType,
+    status: (['pending', 'approved', 'rejected'].includes(statusStr)
+      ? statusStr
+      : 'pending') as RequestStatus,
+    driver: { id: driverId, name: driverName },
+    notes: r.notes != null ? pickString(r.notes) : null,
+    maintenance_requested:
+      r.maintenance_requested != null
+        ? pickString(r.maintenance_requested)
+        : r.inventory_requested != null
+          ? pickString(r.inventory_requested)
+          : null,
+    fuel_requested: r.fuel_requested != null ? pickString(r.fuel_requested) : null,
+    cost:
+      typeof r.cost === 'number' ? r.cost : typeof r.litre_cost === 'number' ? r.litre_cost : null,
+    created_at: pickString(r.created_at) || new Date().toISOString(),
+  }
 }
 
 function startOfToday() {
@@ -43,9 +89,10 @@ function matchesDatePreset(isoDate: string, preset: RequestListQuery['datePreset
 function filterRequests(list: FleetRequest[], q: RequestListQuery): FleetRequest[] {
   const s = q.search.trim().toLowerCase()
   return list.filter((r) => {
-    if (q.type !== 'all' && r.type !== q.type) return false
     if (q.status !== 'all' && r.status !== q.status) return false
+    if (q.type !== 'all' && r.type !== q.type) return false
     if (q.driverId !== 'all' && r.driver.id !== q.driverId) return false
+    if (r.type !== 'fuel' && r.type !== 'maintenance') return false
     if (!matchesDatePreset(r.created_at, q.datePreset)) return false
     if (!s) return true
     return (
@@ -53,8 +100,7 @@ function filterRequests(list: FleetRequest[], q: RequestListQuery): FleetRequest
       r.driver.name.toLowerCase().includes(s) ||
       (r.notes?.toLowerCase().includes(s) ?? false) ||
       (r.maintenance_requested?.toLowerCase().includes(s) ?? false) ||
-      (r.fuel_requested?.toLowerCase().includes(s) ?? false) ||
-      (r.inventory_requested?.toLowerCase().includes(s) ?? false)
+      (r.fuel_requested?.toLowerCase().includes(s) ?? false)
     )
   })
 }
@@ -68,90 +114,67 @@ function metricsFromList(list: FleetRequest[]): RequestMetrics {
   }
 }
 
-async function mockGetMetrics(
+export type RequestApiRole = 'admin' | 'manager' | 'driver'
+
+export async function fetchRequestsForRole(
+  role: RequestApiRole,
+  listQuery: RequestListQuery,
+): Promise<FleetRequest[]> {
+  if (role === 'driver') {
+    const raw = await listMyFleetRequests()
+    return raw.map(normalizeFleetRequest)
+  }
+  const raw = await listFleetRequests({
+    status: listQuery.status === 'all' ? undefined : listQuery.status,
+    type: listQuery.type === 'all' ? undefined : listQuery.type,
+    driver_id: listQuery.driverId === 'all' ? undefined : Number(listQuery.driverId),
+  })
+  return raw.map(normalizeFleetRequest)
+}
+
+export async function getRequestMetrics(
+  role: RequestApiRole,
   query: Omit<RequestListQuery, 'status' | 'page' | 'pageSize'>,
 ): Promise<RequestMetrics> {
-  await delay(180)
   const base: RequestListQuery = {
     ...query,
     status: 'all',
     page: 1,
-    pageSize: mockStore.length || 1,
+    pageSize: 500,
   }
-  return metricsFromList(filterRequests(mockStore, base))
+  const all = await fetchRequestsForRole(role, base)
+  const filtered = filterRequests(all, base)
+  return metricsFromList(filtered)
 }
 
-export async function getRequestMetrics(
-  query: Omit<RequestListQuery, 'status' | 'page' | 'pageSize'>,
-): Promise<RequestMetrics> {
-  if (USE_MOCK_REQUEST_API) {
-    return mockGetMetrics(query)
-  }
-  void query
-  throw new Error('getRequestMetrics: wire to GET /requests/metrics')
-}
-
-async function mockListRequests(query: RequestListQuery): Promise<PaginatedResult<FleetRequest>> {
-  await delay(320)
-  const filtered = filterRequests(mockStore, query)
+export async function listRequests(
+  role: RequestApiRole,
+  query: RequestListQuery,
+): Promise<PaginatedResult<FleetRequest>> {
+  const all = await fetchRequestsForRole(role, query)
+  const filtered = filterRequests(all, query)
   const total = filtered.length
   const start = (query.page - 1) * query.pageSize
   const items = filtered.slice(start, start + query.pageSize)
   return { items, total, page: query.page, pageSize: query.pageSize }
 }
 
-async function httpListRequests(_query: RequestListQuery): Promise<PaginatedResult<FleetRequest>> {
-  void _query
-  throw new Error('httpListRequests: implement or set VITE_USE_MOCK_REQUEST_API=true.')
-}
-
-export async function listRequests(
-  query: RequestListQuery,
-): Promise<PaginatedResult<FleetRequest>> {
-  if (USE_MOCK_REQUEST_API) {
-    return mockListRequests(query)
-  }
-  return httpListRequests(query)
-}
-
-async function mockSetStatus(id: string, status: RequestStatus) {
-  await delay(450)
-  const idx = mockStore.findIndex((r) => r.id === id)
-  if (idx === -1) throw new Error('Request not found')
-  const next: FleetRequest = { ...mockStore[idx]!, status }
-  mockStore = [...mockStore.slice(0, idx), next, ...mockStore.slice(idx + 1)]
-  return next
-}
-
 export async function approveRequestApi(requestId: string): Promise<FleetRequest> {
-  if (USE_MOCK_REQUEST_API) {
-    return mockSetStatus(requestId, 'approved')
-  }
-  void requestId
-  throw new Error('approveRequestApi: wire to POST /requests/:id/approve')
+  const raw = await approveFleetRequest(requestId)
+  return normalizeFleetRequest(raw)
 }
 
 export async function rejectRequestApi(requestId: string, reason: string): Promise<FleetRequest> {
-  if (USE_MOCK_REQUEST_API) {
-    void reason
-    return mockSetStatus(requestId, 'rejected')
-  }
-  void requestId
-  void reason
-  throw new Error('rejectRequestApi: wire to POST /requests/:id/reject')
+  const raw = await rejectFleetRequest(requestId, reason)
+  return normalizeFleetRequest(raw)
 }
 
 export async function listRequestFilterDrivers(): Promise<Array<{ id: string; name: string }>> {
-  if (USE_MOCK_REQUEST_API) {
-    await delay(80)
-    const map = new Map<string, string>()
-    for (const r of mockStore) {
-      map.set(r.driver.id, r.driver.name)
-    }
-    return [...map.entries()]
-      .map(([id, name]) => ({ id, name }))
-      .sort((a, b) => a.name.localeCompare(b.name))
-  }
-  throw new Error('listRequestFilterDrivers: wire to GET /drivers or tenant roster')
+  const { items } = await listDrivers({ per_page: 100, sort: 'full_name', direction: 'asc' })
+  return items.map((d) => ({ id: String(d.id), name: d.full_name }))
 }
 
+export async function submitFleetRequest(body: Record<string, unknown>): Promise<FleetRequest> {
+  const raw = await createFleetRequest(body)
+  return normalizeFleetRequest(raw)
+}

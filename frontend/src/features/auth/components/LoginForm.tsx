@@ -4,6 +4,8 @@ import { ArrowRight, KeyRound, Loader2, QrCode, User } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { PasswordInput } from '@/features/auth/components/PasswordInput'
+import { postLoginPath, useAuth } from '@/features/auth/AuthContext'
+import { ApiError } from '@/services/api/client'
 import { cn } from '@/lib/utils'
 
 type FieldErrors = {
@@ -13,17 +15,19 @@ type FieldErrors = {
 
 export function LoginForm() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [errors, setErrors] = useState<FieldErrors>({})
+  const [formError, setFormError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const validate = (): FieldErrors => {
     const next: FieldErrors = {}
     const trimmed = email.trim()
     if (!trimmed) {
-      next.email = 'Enter your email or username.'
+      next.email = 'Enter your email address.'
     }
     if (!password) {
       next.password = 'Enter your password.'
@@ -31,7 +35,7 @@ export function LoginForm() {
     return next
   }
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (isSubmitting) return
 
@@ -42,10 +46,27 @@ export function LoginForm() {
     }
 
     setErrors({})
+    setFormError(null)
     setIsSubmitting(true)
-    window.setTimeout(() => {
-      navigate('/dashboard')
-    }, 850)
+    try {
+      const loggedInUser = await login(email.trim(), password, rememberMe)
+      navigate(postLoginPath(loggedInUser), { replace: true })
+    } catch (err) {
+      if (err instanceof ApiError) {
+        const fieldMsg = err.firstFieldError()
+        if (fieldMsg && err.errors.email) {
+          setErrors((prev) => ({ ...prev, email: fieldMsg }))
+        } else if (fieldMsg && err.errors.password) {
+          setErrors((prev) => ({ ...prev, password: fieldMsg }))
+        } else {
+          setFormError(err.message)
+        }
+      } else {
+        setFormError(err instanceof Error ? err.message : 'Unable to sign in.')
+      }
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -55,14 +76,19 @@ export function LoginForm() {
         'dark:shadow-[0_40px_80px_-20px_rgba(0,0,0,0.35)]',
       )}
     >
-      <form className="space-y-6" onSubmit={handleSubmit} noValidate>
+      <form className="space-y-6" onSubmit={(e) => void handleSubmit(e)} noValidate>
         <div className="space-y-4">
+          {formError ? (
+            <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive" role="alert">
+              {formError}
+            </p>
+          ) : null}
           <div className="space-y-1.5">
             <label
               className="px-1 text-xs font-bold uppercase tracking-wider text-muted-foreground"
               htmlFor="login-identifier"
             >
-              Email or Username
+              Email
             </label>
             <div className="group relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
@@ -73,8 +99,8 @@ export function LoginForm() {
               </div>
               <input
                 id="login-identifier"
-                name="identifier"
-                type="text"
+                name="email"
+                type="email"
                 autoComplete="username"
                 value={email}
                 onChange={(e) => {
@@ -82,7 +108,7 @@ export function LoginForm() {
                   if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }))
                 }}
                 disabled={isSubmitting}
-                placeholder="Enter your credentials"
+                placeholder="you@company.com"
                 aria-invalid={Boolean(errors.email)}
                 aria-describedby={errors.email ? 'login-identifier-error' : undefined}
                 className={cn(

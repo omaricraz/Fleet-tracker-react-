@@ -3,7 +3,6 @@ export type ResourceView =
   | 'products'
   | 'zones'
   | 'customers'
-  | 'sales'
 
 export type DriverStatus = 'Available' | 'On Trip' | 'Off Duty'
 

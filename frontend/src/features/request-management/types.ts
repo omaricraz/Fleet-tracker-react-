@@ -1,4 +1,4 @@
-export type RequestType = 'fuel' | 'maintenance' | 'inventory'
+export type RequestType = 'fuel' | 'maintenance'
 
 export type RequestStatus = 'pending' | 'approved' | 'rejected'
 
@@ -17,8 +17,7 @@ export interface FleetRequest {
   notes: string | null
   maintenance_requested: string | null
   fuel_requested: string | null
-  inventory_requested: string | null
-  litre_cost: number | null
+  cost: number | null
   invoice_url?: string | null
   created_at: string
 }

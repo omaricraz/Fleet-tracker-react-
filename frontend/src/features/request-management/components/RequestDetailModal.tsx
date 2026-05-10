@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { StatusBadge } from '@/components/StatusBadge'
 import { Button } from '@/components/ui/button'
 import {
-  formatLitreCost,
+  formatRequestCost,
   formatRequestCreatedAt,
   formatRequestedSummary,
 } from '../lib/formatters'
@@ -27,6 +27,7 @@ interface RequestDetailModalProps {
   onApprove?: (request: FleetRequest) => void
   onReject?: (request: FleetRequest) => void
   decisionDisabled?: boolean
+  allowDecisions?: boolean
 }
 
 export function RequestDetailModal({
@@ -36,6 +37,7 @@ export function RequestDetailModal({
   onApprove,
   onReject,
   decisionDisabled,
+  allowDecisions = true,
 }: RequestDetailModalProps) {
   const [imgFailed, setImgFailed] = useState(false)
 
@@ -100,7 +102,7 @@ export function RequestDetailModal({
               <p className="font-semibold text-foreground">{formatRequestedSummary(request)}</p>
               {request.type === 'fuel' ? (
                 <p className="text-sm text-muted-foreground">
-                  Litre cost: {formatLitreCost(request.litre_cost)}
+                  Cost: {formatRequestCost(request.cost)}
                 </p>
               ) : null}
             </div>
@@ -134,17 +136,9 @@ export function RequestDetailModal({
             </div>
             <div className="space-y-1">
               <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                Inventory requested
+                Cost
               </p>
-              <p className="text-sm text-foreground">
-                {request.inventory_requested?.trim() ? request.inventory_requested : '—'}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                Litre cost
-              </p>
-              <p className="text-sm text-foreground">{formatLitreCost(request.litre_cost)}</p>
+              <p className="text-sm text-foreground">{formatRequestCost(request.cost)}</p>
             </div>
           </div>
 
@@ -188,7 +182,7 @@ export function RequestDetailModal({
           <Button type="button" variant="secondary" onClick={onClose}>
             Close
           </Button>
-          {canDecide && onReject ? (
+          {canDecide && allowDecisions && onReject ? (
             <Button
               type="button"
               variant="outline"
@@ -199,7 +193,7 @@ export function RequestDetailModal({
               Reject
             </Button>
           ) : null}
-          {canDecide && onApprove ? (
+          {canDecide && allowDecisions && onApprove ? (
             <Button type="button" disabled={decisionDisabled} onClick={() => onApprove(request)}>
               Approve
             </Button>

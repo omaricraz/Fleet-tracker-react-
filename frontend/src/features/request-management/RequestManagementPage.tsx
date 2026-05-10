@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react'
 import { useCallback, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -12,9 +13,6 @@ import { RequestSummaryCards } from './components/RequestSummaryCards'
 import { RequestTable } from './components/RequestTable'
 import { useRequestManagement } from './hooks/useRequestManagement'
 import type { FleetRequest, RequestDecisionAction } from './types'
-
-/** Toggle via auth/role when tenant permissions are available. */
-const SHOW_CREATE_REQUEST = true
 
 export function RequestManagementPage() {
   const {
@@ -34,7 +32,10 @@ export function RequestManagementPage() {
     setPage,
     approveRequest,
     rejectRequest,
+    requestRole,
   } = useRequestManagement()
+
+  const allowDecisions = requestRole === 'admin' || requestRole === 'manager'
 
   const [detailOpen, setDetailOpen] = useState(false)
   const [activeRequest, setActiveRequest] = useState<FleetRequest | null>(null)
@@ -74,23 +75,15 @@ export function RequestManagementPage() {
       <PageHeader
         eyebrow="Operations"
         title="Request management"
-        description="Review fuel, maintenance, and inventory requests from drivers. Filter the queue, inspect supporting documents, and move work forward with explicit approvals."
+        description="Review fuel and maintenance requests from drivers. Filter the queue, inspect supporting documents, and move work forward with explicit approvals."
         actions={
-          SHOW_CREATE_REQUEST ? (
-            <Button
-              type="button"
-              variant="outline"
-              className="shadow-sm"
-              onClick={() =>
-                setToast({
-                  variant: 'success',
-                  message: 'Create-request flow will open here once the intake API is connected.',
-                })
-              }
-            >
-              <Plus className="size-4" aria-hidden />
-              Create request
-            </Button>
+          requestRole === 'driver' ? (
+            <Link to="/driver">
+              <Button type="button" variant="outline" className="shadow-sm gap-2">
+                <Plus className="size-4" aria-hidden />
+                New request
+              </Button>
+            </Link>
           ) : null
         }
       />
@@ -140,6 +133,7 @@ export function RequestManagementPage() {
             onApprove={(r) => openDecision('approve', r)}
             onReject={(r) => openDecision('reject', r)}
             decisionDisabled={decisionSubmitting}
+            allowDecisions={allowDecisions}
           />
         </div>
       </section>
@@ -150,6 +144,7 @@ export function RequestManagementPage() {
         request={activeRequest}
         onClose={closeDetail}
         decisionDisabled={decisionSubmitting}
+        allowDecisions={allowDecisions}
         onApprove={(r) => openDecision('approve', r)}
         onReject={(r) => openDecision('reject', r)}
       />

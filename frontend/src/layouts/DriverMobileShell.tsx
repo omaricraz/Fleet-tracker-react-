@@ -1,17 +1,24 @@
-import { Link, Outlet, useLocation } from 'react-router-dom'
+import { Link, Navigate, Outlet, useLocation } from 'react-router-dom'
 
+import { useAuth } from '@/features/auth/AuthContext'
+import { canAccessPath, getHomePath, isDriver, isSuperAdmin } from '@/features/auth/permissions'
 import { cn } from '@/lib/utils'
 
 const DRIVER_AVATAR = '/stitch/driver-submit-request/driver-avatar.jpg'
 
-const navItems = [
+const driverOnlyNavItems = [
+  { to: '/driver', label: 'Submit', icon: 'add_circle' as const },
+  { to: '/driver/sales', label: 'Sales', icon: 'sell' as const },
+] as const
+
+const superAdminDriverNavItems = [
   { to: '/platform', label: 'Home', icon: 'home' as const },
   { to: '/driver/trip', label: 'Trip', icon: 'local_shipping' as const },
   { to: '/driver', label: 'Submit', icon: 'add_circle' as const },
   { to: '/driver/sales', label: 'Sales', icon: 'sell' as const },
   { to: '/request-management', label: 'Requests', icon: 'pending_actions' as const },
   { to: '/admin', label: 'Profile', icon: 'person' as const },
-]
+] as const
 
 function navItemActive(pathname: string, to: string) {
   if (to === '/driver') {
@@ -30,9 +37,16 @@ function navItemActive(pathname: string, to: string) {
 }
 
 export function DriverMobileShell() {
+  const { user } = useAuth()
   const { pathname } = useLocation()
   const isSalesPos = pathname.startsWith('/driver/sales')
   const isTripPage = pathname === '/driver/trip' || pathname === '/driver/trip/'
+
+  if (user && !canAccessPath(user, pathname)) {
+    return <Navigate to={getHomePath(user)} replace />
+  }
+
+  const navItems = user && isSuperAdmin(user) ? superAdminDriverNavItems : driverOnlyNavItems
 
   return (
     <div className="min-h-[100dvh] bg-background text-foreground">
@@ -50,9 +64,9 @@ export function DriverMobileShell() {
               <span className="material-symbols-outlined !text-2xl">notifications</span>
             </button>
             <Link
-              to="/dashboard"
+              to={user && isDriver(user) ? '/driver' : '/platform'}
               className="block size-8 overflow-hidden rounded-full bg-primary-fixed"
-              aria-label="Open dashboard"
+              aria-label={user && isDriver(user) ? 'Submit request home' : 'Open platform'}
             >
               <img
                 alt=""

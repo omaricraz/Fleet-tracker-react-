@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 
 import type { ResourceView } from '../types'
 
-const tabs: { id: Exclude<ResourceView, 'sales'>; label: string }[] = [
+const tabs: { id: ResourceView; label: string }[] = [
   { id: 'drivers', label: 'Drivers' },
   { id: 'products', label: 'Products' },
   { id: 'zones', label: 'Zones' },
@@ -16,10 +16,6 @@ interface ResourceTabsProps {
 }
 
 export function ResourceTabs({ view }: ResourceTabsProps) {
-  if (view === 'sales') {
-    return null
-  }
-
   return (
     <div className="flex flex-wrap items-center gap-6 border-b border-border/60">
       {tabs.map((tab) => {

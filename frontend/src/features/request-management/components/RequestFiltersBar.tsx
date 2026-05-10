@@ -86,7 +86,6 @@ export function RequestFiltersBar({
             <option value="all">All types</option>
             <option value="fuel">Fuel</option>
             <option value="maintenance">Maintenance</option>
-            <option value="inventory">Inventory</option>
           </select>
 
           <label htmlFor="req-status" className="sr-only">

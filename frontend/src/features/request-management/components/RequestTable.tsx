@@ -5,7 +5,6 @@ import {
   ChevronsRight,
   Eye,
   Fuel,
-  Package,
   Wrench,
 } from 'lucide-react'
 
@@ -32,7 +31,6 @@ function TypeBadge({ type }: { type: FleetRequest['type'] }) {
   const config = {
     fuel: { icon: Fuel, label: 'Fuel' },
     maintenance: { icon: Wrench, label: 'Maintenance' },
-    inventory: { icon: Package, label: 'Inventory' },
   }[type]
   const Icon = config.icon
   return (
@@ -54,6 +52,8 @@ interface RequestTableProps {
   onApprove: (request: FleetRequest) => void
   onReject: (request: FleetRequest) => void
   decisionDisabled?: boolean
+  /** Tenant managers/admins only — drivers can view but not approve. */
+  allowDecisions?: boolean
 }
 
 export function RequestTable({
@@ -67,6 +67,7 @@ export function RequestTable({
   onApprove,
   onReject,
   decisionDisabled,
+  allowDecisions = true,
 }: RequestTableProps) {
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const safePage = Math.min(page, totalPages)
@@ -151,7 +152,7 @@ export function RequestTable({
                         size="sm"
                         variant="outline"
                         className="h-8 px-2 text-xs"
-                        disabled={r.status !== 'pending' || decisionDisabled}
+                        disabled={r.status !== 'pending' || decisionDisabled || !allowDecisions}
                         onClick={() => onApprove(r)}
                       >
                         Approve
@@ -161,7 +162,7 @@ export function RequestTable({
                         size="sm"
                         variant="outline"
                         className="h-8 px-2 text-xs text-destructive ring-destructive/25 hover:bg-destructive/10"
-                        disabled={r.status !== 'pending' || decisionDisabled}
+                        disabled={r.status !== 'pending' || decisionDisabled || !allowDecisions}
                         onClick={() => onReject(r)}
                       >
                         Reject

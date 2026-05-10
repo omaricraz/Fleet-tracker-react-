@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   Store,
   Truck,
+  UserCog,
   Users,
 } from 'lucide-react'
 
@@ -121,6 +122,16 @@ export const routeManifest: AppRouteMeta[] = [
     navLabel: 'Requests',
     description: 'Request intake, triage, and approval foundation for future workflows.',
     icon: ClipboardList,
+    shell: 'app',
+    group: 'operations',
+    showInSidebar: true,
+  },
+  {
+    path: '/user-management',
+    title: 'User Management',
+    navLabel: 'Users',
+    description: 'Tenant user accounts, roles, and credentials aligned with the users API.',
+    icon: UserCog,
     shell: 'app',
     group: 'operations',
     showInSidebar: true,

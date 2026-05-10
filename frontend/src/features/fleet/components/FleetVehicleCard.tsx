@@ -14,7 +14,6 @@ import {
 } from '@/components/DataTableShell'
 import { StatusBadge } from '@/components/StatusBadge'
 import type { FleetDetailTab, FleetVehicle } from '@/features/fleet/types'
-import { MOCK_DRIVER_OPTIONS } from '@/features/fleet/mockFleetData'
 import { cn } from '@/lib/utils'
 
 function toneToBadge(
@@ -178,8 +177,9 @@ export function FleetVehicleCard({
   activeTab,
   onTabChange,
   driverDisplay,
-  onDriverChange,
+  onDriverChange: _onDriverChange,
 }: FleetVehicleCardProps) {
+  void _onDriverChange
   const driverLabel =
     driverDisplay === 'Unassigned' || !driverDisplay ? 'Unassigned' : driverDisplay
 
@@ -201,42 +201,10 @@ export function FleetVehicleCard({
               Trip ID:{' '}
               <span className="font-bold text-foreground">{vehicle.tripId}</span>
             </p>
-          </div>
-        </div>
-
-        <div className="flex min-w-[140px] flex-col">
-          <span className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            Current Driver
-          </span>
-          <label className="sr-only" htmlFor={`driver-${vehicle.id}`}>
-            Assign driver
-          </label>
-          <select
-            id={`driver-${vehicle.id}`}
-            value={driverDisplay === '' ? 'Unassigned' : driverLabel}
-            onChange={(e) => onDriverChange(e.target.value)}
-            className="w-fit max-w-full cursor-pointer appearance-none rounded-lg border-0 bg-transparent py-1 pl-2 pr-8 text-sm font-bold text-primary -ml-2 hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring/60"
-          >
-            {MOCK_DRIVER_OPTIONS.map((name) => (
-              <option key={name} value={name}>
-                {name === 'Unassigned' ? 'Unassigned' : name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex min-w-[100px] flex-col">
-          <span className="mb-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-            Current Fuel
-          </span>
-          <div className="flex items-center gap-3">
-            <div className="h-2 w-24 overflow-hidden rounded-full bg-surface-low">
-              <div
-                className="h-full rounded-full bg-primary-container"
-                style={{ width: `${vehicle.fuelTankPercent}%` }}
-              />
-            </div>
-            <span className="text-sm font-bold text-primary">{vehicle.fuelLiters}L</span>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Driver:{' '}
+              <span className="font-semibold text-foreground">{driverLabel}</span>
+            </p>
           </div>
         </div>
 

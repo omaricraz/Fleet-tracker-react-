@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+import { useAuth } from '@/features/auth/AuthContext'
 import {
   approveRequestApi,
   getRequestMetrics,
   listRequestFilterDrivers,
   listRequests,
   rejectRequestApi,
+  type RequestApiRole,
 } from '../api/requestApi'
 import type {
   DateRangePreset,
@@ -30,6 +32,10 @@ const initialQuery: RequestListQuery = {
 }
 
 export function useRequestManagement() {
+  const { user } = useAuth()
+  const role: RequestApiRole | null =
+    user?.role === 'admin' || user?.role === 'manager' || user?.role === 'driver' ? user.role : null
+
   const [query, setQuery] = useState<RequestListQuery>(initialQuery)
   const [metrics, setMetrics] = useState<RequestMetrics | null>(null)
   const [pageData, setPageData] = useState<PaginatedResult<FleetRequest> | null>(null)
@@ -49,12 +55,19 @@ export function useRequestManagement() {
   )
 
   const load = useCallback(async () => {
+    if (!role) {
+      setLoading(false)
+      setError('Sign in as a tenant user to load requests.')
+      setMetrics(null)
+      setPageData(null)
+      return
+    }
     setLoading(true)
     setError(null)
     try {
       const [m, list] = await Promise.all([
-        getRequestMetrics(metricsInput),
-        listRequests(query),
+        getRequestMetrics(role, metricsInput),
+        listRequests(role, query),
       ])
       setMetrics(m)
       setPageData(list)
@@ -67,16 +80,20 @@ export function useRequestManagement() {
     } finally {
       setLoading(false)
     }
-  }, [metricsInput, query])
+  }, [metricsInput, query, role])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- remote list + metrics sync
     void load()
   }, [load])
 
-
   useEffect(() => {
     let cancelled = false
+    if (!role || role === 'driver') {
+      setDrivers([])
+      return () => {
+        cancelled = true
+      }
+    }
     void listRequestFilterDrivers()
       .then((d) => {
         if (!cancelled) setDrivers(d)
@@ -87,7 +104,7 @@ export function useRequestManagement() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [role])
 
   function setSearch(search: string) {
     setQuery((q) => ({ ...q, search, page: 1 }))
@@ -155,5 +172,6 @@ export function useRequestManagement() {
     setPageSize,
     approveRequest,
     rejectRequest,
+    requestRole: role,
   }
 }

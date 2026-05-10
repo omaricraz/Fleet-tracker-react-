@@ -18,6 +18,12 @@ export interface TripWorkspacePanelProps {
   onTabChange: (tab: WorkspaceTabId) => void
   onClose: () => void
   layout: 'desktop' | 'drawer'
+  onOpening?: () => void
+  onLoad?: () => void
+  onCloseCount?: () => void
+  onEndTrip?: () => void
+  onDeleteTrip?: () => void
+  tripActionPending?: boolean
 }
 
 export function TripWorkspacePanel({
@@ -26,6 +32,12 @@ export function TripWorkspacePanel({
   onTabChange,
   onClose,
   layout,
+  onOpening,
+  onLoad,
+  onCloseCount,
+  onEndTrip,
+  onDeleteTrip,
+  tripActionPending,
 }: TripWorkspacePanelProps) {
   if (!detail) {
     return (
@@ -38,7 +50,7 @@ export function TripWorkspacePanel({
         )}
       >
         <div className="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center">
-          <p className="text-sm font-bold text-primary">Operational Workspace</p>
+          <p className="text-sm font-bold text-primary">Operational View</p>
           <p className="text-xs text-muted-foreground">
             Select a trip from the grid to view timeline, inventory, and sales.
           </p>
@@ -59,7 +71,7 @@ export function TripWorkspacePanel({
       <div className="flex items-start justify-between gap-3 border-b border-border/50 p-6">
         <div>
           <span className="rounded bg-primary-fixed px-2 py-0.5 text-[10px] font-black uppercase text-primary">
-            Operational Workspace
+            Operational View
           </span>
           <h2 className="mt-1 text-2xl font-black tracking-tighter text-primary">
             {detail.displayId}
@@ -133,18 +145,50 @@ export function TripWorkspacePanel({
         {activeTab === 'timeline' ? <TripTimelineTab entries={detail.timeline} /> : null}
         {activeTab === 'inventory' ? <TripInventoryTab rows={detail.inventory} /> : null}
         {activeTab === 'sales' ? <TripSalesTab rows={detail.sales} /> : null}
+        {onEndTrip ? (
+          <div className="mt-6 border-t border-border/40 pt-4">
+            <button
+              type="button"
+              disabled={Boolean(tripActionPending)}
+              onClick={onEndTrip}
+              className="w-full rounded-md border border-destructive/40 py-2.5 text-xs font-bold uppercase tracking-wide text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
+            >
+              End trip (requires close count)
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <div className="mt-auto flex gap-4 border-t border-border/50 bg-surface-low p-6">
         <button
           type="button"
-          className="flex-1 rounded-md border-2 border-primary py-3 text-sm font-bold text-primary transition-colors hover:bg-primary/5"
+          disabled={Boolean(tripActionPending) || !onOpening}
+          onClick={onOpening}
+          className="flex-1 rounded-md border border-primary/60 py-3 text-sm font-bold text-primary transition-colors hover:bg-primary/5 disabled:opacity-50"
         >
-          Edit Trip
+          Opening
         </button>
         <button
           type="button"
-          className="flex-1 rounded-md bg-destructive py-3 text-sm font-bold text-destructive-foreground shadow-lg transition-all hover:opacity-90"
+          disabled={Boolean(tripActionPending) || !onLoad}
+          onClick={onLoad}
+          className="flex-1 rounded-md border border-primary/60 py-3 text-sm font-bold text-primary transition-colors hover:bg-primary/5 disabled:opacity-50"
+        >
+          Load
+        </button>
+        <button
+          type="button"
+          disabled={Boolean(tripActionPending) || !onCloseCount}
+          onClick={onCloseCount}
+          className="flex-1 rounded-md border-2 border-primary py-3 text-sm font-bold text-primary transition-colors hover:bg-primary/5 disabled:opacity-50"
+        >
+          Close Count
+        </button>
+        <button
+          type="button"
+          disabled={Boolean(tripActionPending) || !onDeleteTrip}
+          onClick={onDeleteTrip}
+          className="flex-1 rounded-md bg-destructive py-3 text-sm font-bold text-destructive-foreground shadow-lg transition-all hover:opacity-90 disabled:opacity-50"
         >
           Delete Trip
         </button>

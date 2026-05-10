@@ -35,9 +35,11 @@ export interface TripCardProps {
   trip: TripSummary
   selected: boolean
   onSelect: () => void
+  onEndTrip?: () => void
+  actionPending?: boolean
 }
 
-export function TripCard({ trip, selected, onSelect }: TripCardProps) {
+export function TripCard({ trip, selected, onSelect, onEndTrip, actionPending = false }: TripCardProps) {
   return (
     <article
       role="button"
@@ -102,10 +104,14 @@ export function TripCard({ trip, selected, onSelect }: TripCardProps) {
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
-              onClick={(e) => e.stopPropagation()}
-              className="rounded-md border border-[var(--outline-variant)] bg-white px-3 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-surface-high"
+              disabled={!onEndTrip || actionPending}
+              onClick={(e) => {
+                e.stopPropagation()
+                onEndTrip?.()
+              }}
+              className="rounded-md border border-[var(--outline-variant)] bg-white px-3 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-surface-high disabled:opacity-50"
             >
-              Track Live
+              End Trip
             </button>
             <button
               type="button"
@@ -115,7 +121,7 @@ export function TripCard({ trip, selected, onSelect }: TripCardProps) {
               }}
               className="rounded-md bg-primary px-3 py-1.5 text-xs font-bold text-primary-foreground"
             >
-              Workspace
+              View
             </button>
           </div>
         </div>

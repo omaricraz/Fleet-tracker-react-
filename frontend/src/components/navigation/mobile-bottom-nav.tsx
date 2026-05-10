@@ -1,11 +1,22 @@
 import { NavLink } from 'react-router-dom'
 
+import { useAuth } from '@/features/auth/AuthContext'
+import { canSeeAppRoute } from '@/features/auth/permissions'
 import { cn } from '@/lib/utils'
 import { appRoutes } from '@/routes/manifest'
 
-const mobileRoutes = appRoutes.filter((route) => route.showInMobileNav)
-
 export function MobileBottomNav() {
+  const { user } = useAuth()
+  if (!user) return null
+
+  const mobileRoutes = appRoutes.filter(
+    (route) => route.showInMobileNav && canSeeAppRoute(user, route.path),
+  )
+
+  if (mobileRoutes.length === 0) {
+    return null
+  }
+
   return (
     <div className="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4 md:hidden">
       <nav className="glass-dock ambient-shadow flex w-full max-w-md items-center justify-between rounded-[var(--radius-xl)] border border-border px-3 py-2">

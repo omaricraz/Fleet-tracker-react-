@@ -10,7 +10,6 @@ const searchPlaceholder: Record<ResourceView, string> = {
   products: 'Search products by name, type, or SKU...',
   zones: 'Search zones by name or city...',
   customers: 'Search customers by name, phone, or location...',
-  sales: 'Search sales snapshots by rep or region...',
 }
 
 const addLabel: Record<ResourceView, string> = {
@@ -18,7 +17,6 @@ const addLabel: Record<ResourceView, string> = {
   products: 'Add Product',
   zones: 'Add Zone',
   customers: 'Add Customer',
-  sales: 'New View',
 }
 
 interface ResourceToolbarProps {

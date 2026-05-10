@@ -1,14 +1,86 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 
+import { useToast } from '@/components/providers/toast-provider'
+import { submitFleetRequest } from '@/features/request-management/api/requestApi'
+import { listMyFleetRequests } from '@/services/api/requests'
+import { ApiError } from '@/services/api/client'
+
 type RequestTab = 'fuel' | 'maintenance'
 
+function pickString(v: unknown): string {
+  if (typeof v === 'string') return v
+  if (v == null) return ''
+  return String(v)
+}
+
 export function DriverSubmitRequestPage() {
+  const { pushToast } = useToast()
+  const qc = useQueryClient()
   const [tab, setTab] = useState<RequestTab>('fuel')
+  const [litres, setLitres] = useState('')
+  const [costPerLitre, setCostPerLitre] = useState('')
+  const [fuelNotes, setFuelNotes] = useState('')
+  const [maintType, setMaintType] = useState('')
+  const [maintCost, setMaintCost] = useState('')
+  const [maintDetails, setMaintDetails] = useState('')
+
+  const { data: rawRecent = [] } = useQuery({
+    queryKey: ['requests', 'my'],
+    queryFn: listMyFleetRequests,
+  })
+
+  const submitMut = useMutation({
+    mutationFn: submitFleetRequest,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['requests'] })
+      pushToast('success', 'Request submitted.')
+      setLitres('')
+      setCostPerLitre('')
+      setFuelNotes('')
+      setMaintType('')
+      setMaintCost('')
+      setMaintDetails('')
+    },
+    onError: (e) => {
+      pushToast('error', e instanceof ApiError ? e.message : 'Could not submit request.')
+    },
+  })
 
   function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    if (tab === 'fuel') {
+      const l = Number.parseFloat(litres)
+      const c = Number.parseFloat(costPerLitre)
+      if (!Number.isFinite(l) || l <= 0) {
+        pushToast('error', 'Enter requested litres.')
+        return
+      }
+      submitMut.mutate({
+        type: 'fuel',
+        fuel_requested: String(l),
+        cost: Number.isFinite(c) ? c : 0,
+        notes: fuelNotes.trim() || null,
+      })
+      return
+    }
+    if (!maintType.trim()) {
+      pushToast('error', 'Describe the maintenance type.')
+      return
+    }
+    const m = Number.parseFloat(maintCost)
+    submitMut.mutate({
+      type: 'maintenance',
+      maintenance_requested: maintType.trim(),
+      cost: Number.isFinite(m) ? m : 0,
+      notes: maintDetails.trim() || null,
+    })
   }
+
+  const recent = rawRecent
+    .filter((r) => pickString(r.type).toLowerCase() !== 'inventory')
+    .slice(0, 5)
 
   return (
     <main className="mx-auto max-w-md space-y-8 px-6 pb-36 pt-8">
@@ -17,7 +89,7 @@ export function DriverSubmitRequestPage() {
           New Request
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Submit fuel or maintenance logs for Asset #8821
+          Submit fuel or maintenance requests for your assigned vehicle.
         </p>
       </section>
 
@@ -62,6 +134,8 @@ export function DriverSubmitRequestPage() {
                   min={0}
                   step="0.01"
                   type="number"
+                  value={litres}
+                  onChange={(ev) => setLitres(ev.target.value)}
                 />
               </div>
               <div className="space-y-4 rounded-xl bg-surface-lowest p-6 shadow-[var(--shadow-soft)] dark:bg-card">
@@ -76,6 +150,8 @@ export function DriverSubmitRequestPage() {
                   min={0}
                   step="0.001"
                   type="number"
+                  value={costPerLitre}
+                  onChange={(ev) => setCostPerLitre(ev.target.value)}
                 />
               </div>
               <div className="space-y-2 rounded-xl border-l-4 border-primary bg-surface-lowest p-4 dark:bg-card">
@@ -86,6 +162,8 @@ export function DriverSubmitRequestPage() {
                   className="h-20 w-full resize-none border-0 bg-transparent p-0 text-sm text-foreground outline-none placeholder:text-[var(--outline-variant)] focus:ring-0"
                   placeholder="e.g. Full tank at Shell Station #4..."
                   rows={4}
+                  value={fuelNotes}
+                  onChange={(ev) => setFuelNotes(ev.target.value)}
                 />
               </div>
               <button
@@ -98,7 +176,8 @@ export function DriverSubmitRequestPage() {
             </div>
             <button
               type="submit"
-              className="hero-gradient flex w-full items-center justify-center gap-2 rounded-xl py-5 text-lg font-bold text-primary-foreground shadow-xl transition-all active:scale-[0.98]"
+              disabled={submitMut.isPending}
+              className="hero-gradient flex w-full items-center justify-center gap-2 rounded-xl py-5 text-lg font-bold text-primary-foreground shadow-xl transition-all active:scale-[0.98] disabled:opacity-60"
             >
               <span>Submit Fuel Request</span>
               <span className="material-symbols-outlined !text-[1.375rem]">send</span>
@@ -115,6 +194,23 @@ export function DriverSubmitRequestPage() {
                   className="w-full border-0 bg-transparent p-0 text-2xl font-bold tracking-tight text-foreground outline-none placeholder:text-[var(--outline-variant)] focus:ring-0"
                   placeholder="e.g. Brake inspection"
                   type="text"
+                  value={maintType}
+                  onChange={(ev) => setMaintType(ev.target.value)}
+                />
+              </div>
+              <div className="space-y-4 rounded-xl bg-surface-lowest p-6 shadow-[var(--shadow-soft)] dark:bg-card">
+                <label className="mb-1 block text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
+                  Cost (USD)
+                </label>
+                <input
+                  className="w-full border-0 bg-transparent p-0 text-2xl font-bold tracking-tight text-foreground outline-none placeholder:text-[var(--outline-variant)] focus:ring-0"
+                  placeholder="0.00"
+                  inputMode="decimal"
+                  min={0}
+                  step="0.01"
+                  type="number"
+                  value={maintCost}
+                  onChange={(ev) => setMaintCost(ev.target.value)}
                 />
               </div>
               <div className="space-y-2 rounded-xl border-l-4 border-primary bg-surface-lowest p-4 dark:bg-card">
@@ -125,6 +221,8 @@ export function DriverSubmitRequestPage() {
                   className="h-24 w-full resize-none border-0 bg-transparent p-0 text-sm text-foreground outline-none placeholder:text-[var(--outline-variant)] focus:ring-0"
                   placeholder="Describe the issue, parts needed, urgency..."
                   rows={4}
+                  value={maintDetails}
+                  onChange={(ev) => setMaintDetails(ev.target.value)}
                 />
               </div>
               <button
@@ -137,7 +235,8 @@ export function DriverSubmitRequestPage() {
             </div>
             <button
               type="submit"
-              className="hero-gradient flex w-full items-center justify-center gap-2 rounded-xl py-5 text-lg font-bold text-primary-foreground shadow-xl transition-all active:scale-[0.98]"
+              disabled={submitMut.isPending}
+              className="hero-gradient flex w-full items-center justify-center gap-2 rounded-xl py-5 text-lg font-bold text-primary-foreground shadow-xl transition-all active:scale-[0.98] disabled:opacity-60"
             >
               <span>Submit Maintenance Request</span>
               <span className="material-symbols-outlined !text-[1.375rem]">send</span>
@@ -159,41 +258,43 @@ export function DriverSubmitRequestPage() {
           </Link>
         </div>
         <div className="space-y-3">
-          <div className="flex items-center justify-between rounded-xl bg-surface-lowest p-4 transition-colors hover:bg-primary-fixed/20 dark:bg-card dark:hover:bg-primary-fixed/15">
-            <div className="flex items-center gap-4">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-muted">
-                <span className="material-symbols-outlined text-primary dark:text-primary">
-                  local_gas_station
-                </span>
-              </div>
-              <div>
-                <div className="text-sm font-bold text-foreground">Fuel Log: 45.2L</div>
-                <div className="text-[10px] font-medium text-muted-foreground">
-                  OCT 24, 2023 • 09:12 AM
+          {recent.length === 0 ? (
+            <p className="text-center text-sm text-muted-foreground">No requests yet.</p>
+          ) : (
+            recent.map((r) => {
+              const typ = pickString(r.type).toLowerCase()
+              const st = pickString(r.status).toLowerCase()
+              const label =
+                typ === 'fuel'
+                  ? `Fuel: ${pickString(r.fuel_requested) || '—'}`
+                  : typ === 'maintenance'
+                    ? pickString(r.maintenance_requested) || 'Maintenance'
+                    : typ
+              return (
+                <div
+                  key={String(r.id)}
+                  className="flex items-center justify-between rounded-xl bg-surface-lowest p-4 transition-colors hover:bg-primary-fixed/20 dark:bg-card dark:hover:bg-primary-fixed/15"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="flex size-10 items-center justify-center rounded-lg bg-muted">
+                      <span className="material-symbols-outlined text-primary dark:text-primary">
+                        {typ === 'fuel' ? 'local_gas_station' : 'build'}
+                      </span>
+                    </div>
+                    <div>
+                      <div className="text-sm font-bold text-foreground">{label}</div>
+                      <div className="text-[10px] font-medium text-muted-foreground">
+                        {pickString(r.created_at)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rounded-full bg-accent px-3 py-1 text-[10px] font-bold tracking-wide text-accent-foreground uppercase">
+                    {st}
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="rounded-full bg-accent px-3 py-1 text-[10px] font-bold tracking-wide text-accent-foreground uppercase">
-              Pending
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between rounded-xl bg-surface-lowest p-4 transition-colors hover:bg-primary-fixed/20 dark:bg-card dark:hover:bg-primary-fixed/15">
-            <div className="flex items-center gap-4">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-muted">
-                <span className="material-symbols-outlined text-primary">build</span>
-              </div>
-              <div>
-                <div className="text-sm font-bold text-foreground">Brake Inspection</div>
-                <div className="text-[10px] font-medium text-muted-foreground">
-                  OCT 22, 2023 • 04:45 PM
-                </div>
-              </div>
-            </div>
-            <div className="rounded-full bg-emerald-100 px-3 py-1 text-[10px] font-bold text-emerald-800 uppercase dark:bg-emerald-900/40 dark:text-emerald-200">
-              Approved
-            </div>
-          </div>
+              )
+            })
+          )}
         </div>
       </section>
     </main>

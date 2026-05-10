@@ -1,8 +1,9 @@
-import { Bell, Settings } from 'lucide-react'
+import { Bell, LogOut } from 'lucide-react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
+import { useAuth } from '@/features/auth/AuthContext'
 import { cn } from '@/lib/utils'
 import { getRouteMeta } from '@/routes/manifest'
 
@@ -11,20 +12,31 @@ const RESOURCE_VIEWS = [
   { id: 'zones', label: 'Zones' },
   { id: 'drivers', label: 'Drivers' },
   { id: 'customers', label: 'Customers' },
-  { id: 'sales', label: 'Sales' },
 ] as const
 
-export function TopNavbar() {
+type TopNavbarProps = {
+  sidebarCollapsed?: boolean
+}
+
+export function TopNavbar({ sidebarCollapsed = false }: TopNavbarProps = {}) {
   const { pathname } = useLocation()
   const [searchParams] = useSearchParams()
   const route = getRouteMeta(pathname)
+  const { logout } = useAuth()
 
   const isResourceManagement = pathname === '/resource-management'
   const activeView = searchParams.get('view') ?? 'drivers'
 
+  const headerLeftOffset = sidebarCollapsed ? 'md:left-16' : 'md:left-72'
+
   if (isResourceManagement) {
     return (
-      <header className="fixed inset-x-0 top-0 z-30 border-b border-border/50 bg-card/95 shadow-sm backdrop-blur-md md:left-72">
+      <header
+        className={cn(
+          'fixed inset-x-0 top-0 z-30 border-b border-border/50 bg-card/95 shadow-sm backdrop-blur-md transition-[left] duration-200 ease-out',
+          headerLeftOffset,
+        )}
+      >
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 sm:py-4 lg:flex-row lg:items-center lg:justify-between lg:px-10">
           <div className="flex min-w-0 flex-1 flex-col gap-3 lg:flex-row lg:items-center lg:gap-8">
             <span className="shrink-0 text-xl font-black tracking-tighter text-foreground lg:text-2xl">
@@ -62,9 +74,10 @@ export function TopNavbar() {
             <button
               type="button"
               className="rounded-full p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              aria-label="Settings"
+              aria-label="Log out"
+              onClick={() => void logout()}
             >
-              <Settings className="size-5" />
+              <LogOut className="size-5" />
             </button>
             <div
               className="ml-1 size-8 shrink-0 overflow-hidden rounded-full border border-border bg-muted"
@@ -83,7 +96,12 @@ export function TopNavbar() {
   }
 
   return (
-    <header className="fixed inset-x-0 top-0 z-30 border-0 bg-background/92 backdrop-blur md:left-72">
+    <header
+      className={cn(
+        'fixed inset-x-0 top-0 z-30 border-0 bg-background/92 backdrop-blur transition-[left] duration-200 ease-out',
+        headerLeftOffset,
+      )}
+    >
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
         <div className="min-w-0 space-y-1">
           <p className="eyebrow">Fleet Tracker</p>
@@ -105,6 +123,15 @@ export function TopNavbar() {
             <Bell />
           </Button>
           <ThemeToggle />
+          <Button
+            variant="secondary"
+            size="icon"
+            className="rounded-full"
+            aria-label="Log out"
+            onClick={() => void logout()}
+          >
+            <LogOut className="size-5" />
+          </Button>
         </div>
       </div>
     </header>

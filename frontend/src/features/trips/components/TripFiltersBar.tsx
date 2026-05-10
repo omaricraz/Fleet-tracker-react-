@@ -1,15 +1,10 @@
 import { Calendar, ChevronDown, Filter, User } from 'lucide-react'
+import type { ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 
-const ZONES = [
-  'Filter by Zone',
-  'Hargeisa East',
-  'Berbera Port',
-  'Burao South',
-] as const
-
-const DRIVERS = [
+const FALLBACK_ZONES = ['Filter by Zone', 'Hargeisa East', 'Berbera Port', 'Burao South'] as const
+const FALLBACK_DRIVERS = [
   'Filter by Driver',
   'Ali Hassan',
   'Mohamed Abdi',
@@ -25,7 +20,11 @@ export interface TripFiltersBarProps {
   onDriverChange: (driver: string) => void
   search: string
   onSearchChange: (value: string) => void
+  /** When provided (e.g. from live trip list), replaces static zone options. */
+  zoneOptions?: string[]
+  driverOptions?: string[]
   className?: string
+  actions?: ReactNode
 }
 
 export function TripFiltersBar({
@@ -36,8 +35,17 @@ export function TripFiltersBar({
   onDriverChange,
   search,
   onSearchChange,
+  zoneOptions,
+  driverOptions,
   className,
+  actions,
 }: TripFiltersBarProps) {
+  const zones = zoneOptions?.length
+    ? ['Filter by Zone', ...zoneOptions]
+    : [...FALLBACK_ZONES]
+  const drivers = driverOptions?.length
+    ? ['Filter by Driver', ...driverOptions]
+    : [...FALLBACK_DRIVERS]
   return (
     <div
       className={cn(
@@ -45,7 +53,10 @@ export function TripFiltersBar({
         className,
       )}
     >
-      <h2 className="text-xl font-bold tracking-tight text-primary">Trips</h2>
+      <div className="flex items-center gap-3">
+        <h2 className="text-xl font-bold tracking-tight text-primary">Trips</h2>
+        {actions}
+      </div>
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <label className="sr-only" htmlFor="trip-workspace-search">
           Search trips
@@ -75,7 +86,7 @@ export function TripFiltersBar({
             onChange={(e) => onZoneChange(e.target.value)}
             className="w-full cursor-pointer appearance-none rounded-md border border-[var(--outline-variant)]/30 bg-white py-2 pl-9 pr-9 text-xs font-bold uppercase tracking-tight text-muted-foreground shadow-sm outline-none focus:ring-2 focus:ring-primary/30"
           >
-            {ZONES.map((z) => (
+            {zones.map((z) => (
               <option key={z} value={z}>
                 {z}
               </option>
@@ -90,7 +101,7 @@ export function TripFiltersBar({
             onChange={(e) => onDriverChange(e.target.value)}
             className="w-full cursor-pointer appearance-none rounded-md border border-[var(--outline-variant)]/30 bg-white py-2 pl-9 pr-9 text-xs font-bold uppercase tracking-tight text-muted-foreground shadow-sm outline-none focus:ring-2 focus:ring-primary/30"
           >
-            {DRIVERS.map((d) => (
+            {drivers.map((d) => (
               <option key={d} value={d}>
                 {d}
               </option>

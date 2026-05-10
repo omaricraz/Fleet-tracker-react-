@@ -9,6 +9,7 @@ interface FilterBarProps {
   /** When set with `onSearchChange`, search is editable (not read-only). */
   searchValue?: string
   onSearchChange?: (event: ChangeEvent<HTMLInputElement>) => void
+  searchInputId?: string
   searchAriaLabel?: string
   searchDisabled?: boolean
   /** Applied to the search field wrapper (e.g. `flex-1 max-w-none` for full-width search). */
@@ -22,6 +23,7 @@ export function FilterBar({
   searchPlaceholder = 'Search modules',
   searchValue,
   onSearchChange,
+  searchInputId,
   searchAriaLabel = 'Search modules',
   searchDisabled,
   searchContainerClassName,
@@ -43,6 +45,7 @@ export function FilterBar({
         >
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            id={searchInputId}
             aria-label={searchAriaLabel}
             className="pl-10"
             placeholder={searchPlaceholder}

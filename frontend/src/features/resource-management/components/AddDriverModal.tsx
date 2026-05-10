@@ -1,22 +1,50 @@
-import { X } from 'lucide-react'
+import { useState, type FormEvent } from 'react'
+import { Loader2, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+
+export type ResourceFormValues = Record<string, string | undefined>
+export type ResourceFormField = {
+  key: string
+  label: string
+  type?: 'text' | 'number' | 'email'
+  required?: boolean
+}
 
 interface AddDriverModalProps {
   open: boolean
   onClose: () => void
-  title?: string
-  description?: string
+  title: string
+  description: string
+  submitLabel: string
+  fields: ResourceFormField[]
+  initialValues: ResourceFormValues
+  errors?: Record<string, string>
+  submitting?: boolean
+  onSubmit: (values: ResourceFormValues) => void
 }
 
 export function AddDriverModal({
   open,
   onClose,
-  title = 'Add driver',
-  description = 'Driver onboarding will connect to tenant APIs. This dialog is a UI placeholder.',
+  title,
+  description,
+  submitLabel,
+  fields,
+  initialValues,
+  errors = {},
+  submitting = false,
+  onSubmit,
 }: AddDriverModalProps) {
+  const [values, setValues] = useState<ResourceFormValues>(initialValues)
+
   if (!open) {
     return null
+  }
+
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    onSubmit(values)
   }
 
   return (
@@ -32,7 +60,10 @@ export function AddDriverModal({
         aria-label="Close dialog"
         onClick={onClose}
       />
-      <div className="relative z-10 w-full max-w-md rounded-xl border border-border/60 bg-card p-6 shadow-[var(--shadow-ambient)]">
+      <form
+        className="relative z-10 w-full max-w-md rounded-xl border border-border/60 bg-card p-6 shadow-[var(--shadow-ambient)]"
+        onSubmit={handleSubmit}
+      >
         <div className="flex items-start justify-between gap-4">
           <div>
             <h2 id="resource-modal-title" className="text-lg font-black text-foreground">
@@ -44,20 +75,35 @@ export function AddDriverModal({
             <X className="size-5" />
           </Button>
         </div>
-        <div className="mt-6 space-y-3">
-          <div className="h-10 rounded-lg bg-muted ring-1 ring-border/60" />
-          <div className="h-10 rounded-lg bg-muted ring-1 ring-border/60" />
-          <div className="h-10 rounded-lg bg-muted ring-1 ring-border/60" />
+        <div className="mt-6 space-y-4">
+          {fields.map((field) => (
+            <div key={field.key} className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground" htmlFor={field.key}>
+                {field.label}
+              </label>
+              <input
+                id={field.key}
+                type={field.type ?? 'text'}
+                value={values[field.key] ?? ''}
+                required={field.required}
+                disabled={submitting}
+                onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                className="w-full rounded-lg border border-border/60 bg-surface-lowest px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-primary/30 disabled:opacity-60"
+              />
+              {errors[field.key] ? <p className="text-xs font-semibold text-destructive">{errors[field.key]}</p> : null}
+            </div>
+          ))}
         </div>
         <div className="mt-6 flex justify-end gap-2">
-          <Button type="button" variant="secondary" onClick={onClose}>
+          <Button type="button" variant="secondary" onClick={onClose} disabled={submitting}>
             Cancel
           </Button>
-          <Button type="button" onClick={onClose}>
-            Save draft
+          <Button type="submit" disabled={submitting}>
+            {submitting ? <Loader2 className="size-4 animate-spin" /> : null}
+            {submitLabel}
           </Button>
         </div>
-      </div>
+      </form>
     </div>
   )
 }
