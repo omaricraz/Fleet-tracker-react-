@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 import { useAuth } from '@/features/auth/AuthContext'
 import {
   approveRequestApi,
-  getRequestMetrics,
+  loadRequestDashboardPage,
   listRequestFilterDrivers,
-  listRequests,
   rejectRequestApi,
   type RequestApiRole,
 } from '../api/requestApi'
@@ -44,16 +43,6 @@ export function useRequestManagement() {
   const [error, setError] = useState<string | null>(null)
   const [decisionSubmitting, setDecisionSubmitting] = useState(false)
 
-  const metricsInput = useMemo(
-    () => ({
-      search: query.search,
-      type: query.type,
-      driverId: query.driverId,
-      datePreset: query.datePreset,
-    }),
-    [query.search, query.type, query.driverId, query.datePreset],
-  )
-
   const load = useCallback(async () => {
     if (!role) {
       setLoading(false)
@@ -65,10 +54,7 @@ export function useRequestManagement() {
     setLoading(true)
     setError(null)
     try {
-      const [m, list] = await Promise.all([
-        getRequestMetrics(role, metricsInput),
-        listRequests(role, query),
-      ])
+      const { metrics: m, pageData: list } = await loadRequestDashboardPage(role, query)
       setMetrics(m)
       setPageData(list)
       const maxPage = Math.max(1, Math.ceil(list.total / query.pageSize))
@@ -80,7 +66,7 @@ export function useRequestManagement() {
     } finally {
       setLoading(false)
     }
-  }, [metricsInput, query, role])
+  }, [query, role])
 
   useEffect(() => {
     void load()

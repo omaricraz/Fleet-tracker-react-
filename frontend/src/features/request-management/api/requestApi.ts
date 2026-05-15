@@ -147,6 +147,48 @@ export async function getRequestMetrics(
   return metricsFromList(filtered)
 }
 
+/**
+ * One API round-trip for metrics + table: metrics need all statuses, so we always fetch without
+ * server-side status filtering and apply list/status filters client-side (same outcome as pairing
+ * getRequestMetrics + listRequests).
+ */
+export async function loadRequestDashboardPage(
+  role: RequestApiRole,
+  query: RequestListQuery,
+): Promise<{ metrics: RequestMetrics; pageData: PaginatedResult<FleetRequest> }> {
+  const fetchQuery: RequestListQuery = {
+    ...query,
+    status: 'all',
+    page: 1,
+    pageSize: 500,
+  }
+  const all = await fetchRequestsForRole(role, fetchQuery)
+
+  const metricsBase: RequestListQuery = {
+    search: query.search,
+    type: query.type,
+    driverId: query.driverId,
+    datePreset: query.datePreset,
+    status: 'all',
+    page: 1,
+    pageSize: 500,
+  }
+  const metrics = metricsFromList(filterRequests(all, metricsBase))
+
+  const filteredForTable = filterRequests(all, query)
+  const total = filteredForTable.length
+  const start = (query.page - 1) * query.pageSize
+  const items = filteredForTable.slice(start, start + query.pageSize)
+  const pageData: PaginatedResult<FleetRequest> = {
+    items,
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  }
+
+  return { metrics, pageData }
+}
+
 export async function listRequests(
   role: RequestApiRole,
   query: RequestListQuery,

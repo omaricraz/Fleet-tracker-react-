@@ -3,6 +3,7 @@ export type { FleetRequest, RequestListQuery, RequestStatus, RequestType } from 
 export {
   approveRequestApi,
   getRequestMetrics,
+  loadRequestDashboardPage,
   listRequestFilterDrivers,
   listRequests,
   rejectRequestApi,
