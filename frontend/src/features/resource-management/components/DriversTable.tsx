@@ -54,6 +54,9 @@ export function DriversTable({ rows, onEdit, onDelete }: DriversTableProps) {
                 Full Name
               </th>
               <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                User ID
+              </th>
+              <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
                 Contact
               </th>
               <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -94,6 +97,7 @@ export function DriversTable({ rows, onEdit, onDelete }: DriversTableProps) {
                     </div>
                   </div>
                 </td>
+                <td className="px-6 py-5 text-sm font-medium text-muted-foreground">{row.userId}</td>
                 <td className="px-6 py-5 text-sm font-medium text-muted-foreground">
                   {row.phone}
                 </td>
@@ -199,6 +203,10 @@ export function DriversTable({ rows, onEdit, onDelete }: DriversTableProps) {
               {statusPill(row.status)}
             </div>
             <dl className="mt-4 space-y-2 text-sm">
+              <div className="flex justify-between gap-4">
+                <dt className="text-muted-foreground">User ID</dt>
+                <dd className="font-medium text-foreground">{row.userId}</dd>
+              </div>
               <div className="flex justify-between gap-4">
                 <dt className="text-muted-foreground">Contact</dt>
                 <dd className="font-medium text-foreground">{row.phone}</dd>

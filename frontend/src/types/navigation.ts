@@ -12,5 +12,4 @@ export interface AppRouteMeta {
   shell: AppShellKind
   group?: AppRouteGroup
   showInSidebar?: boolean
-  showInMobileNav?: boolean
 }

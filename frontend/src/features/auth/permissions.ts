@@ -16,6 +16,8 @@ export function isDriver(user: UserResource | null): boolean {
 
 /** Paths admin/manager may use in the desktop app shell. */
 const STAFF_PATH_PREFIXES = [
+  '/dashboard',
+  '/alerts',
   '/fleet-management',
   '/trip-management',
   '/resource-management',
@@ -39,6 +41,7 @@ export function canAccessPath(user: UserResource | null, pathname: string): bool
     if (pathname.startsWith('/driver/trip')) return false
     if (pathname === '/driver' || pathname === '/driver/') return true
     if (pathname.startsWith('/driver/sales')) return true
+    if (pathname.startsWith('/driver/profile')) return true
     return false
   }
 

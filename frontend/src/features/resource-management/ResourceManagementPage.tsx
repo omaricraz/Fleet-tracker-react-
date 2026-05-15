@@ -17,17 +17,18 @@ import { ProductsTable } from './components/ProductsTable'
 import { ResourceTabs } from './components/ResourceTabs'
 import { ResourceToolbar } from './components/ResourceToolbar'
 import { ZonesTable } from './components/ZonesTable'
-import type {
-  CustomerRow,
-  DriverRow,
-  ProductRow,
-  ResourceView,
-  ZoneRow,
-} from './types'
+import type { CustomerRow, DriverRow, ProductRow, ResourceView, ZoneRow } from './types'
 
 const PAGE_SIZE = 10
 
-const views: ResourceView[] = ['products', 'zones', 'drivers', 'customers']
+const views: ResourceView[] = ['drivers', 'products', 'zones', 'customers']
+
+const DEFAULT_PRIMARY_FILTER: Record<ResourceView, string> = {
+  drivers: 'All Zones',
+  customers: 'All Zones',
+  products: 'All Types',
+  zones: 'All Cities',
+}
 
 function parseView(raw: string | null): ResourceView {
   if (raw && views.includes(raw as ResourceView)) {
@@ -47,7 +48,7 @@ export function ResourceManagementPage() {
   const view = parseView(searchParams.get('view'))
 
   const [search, setSearch] = useState('')
-  const [primaryFilter, setPrimaryFilter] = useState('All Zones')
+  const [primaryFilter, setPrimaryFilter] = useState(DEFAULT_PRIMARY_FILTER.drivers)
   const [statusFilter, setStatusFilter] = useState('All Status')
   const [page, setPage] = useState(1)
   const [addOpen, setAddOpen] = useState(false)
@@ -82,6 +83,7 @@ export function ResourceManagementPage() {
         id: String(row.id),
         fullName: row.full_name,
         driverId: String(row.id),
+        userId: row.user_id != null ? String(row.user_id) : '—',
         phone: row.phone,
         zone: row.zone?.name ?? 'Unassigned',
         vehicleModel: '—',
@@ -111,10 +113,9 @@ export function ResourceManagementPage() {
         name: row.name,
         city: row.city,
         stores: Number(row.number_of_stores) || 0,
-        assignedDrivers: drivers.filter((d) => d.zone_id === row.id).length,
         status: 'Active',
       })),
-    [zones, drivers],
+    [zones],
   )
 
   const customerRows = useMemo<CustomerRow[]>(
@@ -171,13 +172,15 @@ export function ResourceManagementPage() {
       const zoneOk = primaryFilter === 'All Zones' || row.zone === primaryFilter
       const statusOk = statusFilter === 'All Status' || row.status === statusFilter
       const normalizedPhone = (row.phone ?? '').replace(/\s/g, '')
+      const userIdSearch = row.userId === '—' ? '' : row.userId.toLowerCase()
       const textOk =
         q.length === 0 ||
         row.fullName.toLowerCase().includes(q) ||
         normalizedPhone.includes(normalizedQueryPhone) ||
         row.plate.toLowerCase().includes(q) ||
         row.vehicleModel.toLowerCase().includes(q) ||
-        row.driverId.toLowerCase().includes(q)
+        row.driverId.toLowerCase().includes(q) ||
+        (userIdSearch.length > 0 && userIdSearch.includes(q))
       return zoneOk && statusOk && textOk
     })
   }, [driverRows, search, primaryFilter, statusFilter])
@@ -227,9 +230,9 @@ export function ResourceManagementPage() {
   useEffect(() => {
     setPage(1)
     setSearch('')
-    setPrimaryFilter(primaryOptions[0] ?? '')
-    setStatusFilter(statusOptions[0] ?? 'All Status')
-  }, [view, primaryOptions, statusOptions])
+    setPrimaryFilter(DEFAULT_PRIMARY_FILTER[view])
+    setStatusFilter('All Status')
+  }, [view])
 
   const pagedDrivers = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE
@@ -253,7 +256,11 @@ export function ResourceManagementPage() {
 
   const driverMut = useMutation({
     mutationFn: async (v: ResourceFormValues) => {
-      const body = { full_name: v.full_name?.trim() ?? '', phone: v.phone?.trim() ?? '', zone_id: v.zone_id ? Number(v.zone_id) : null }
+      const body = {
+        full_name: v.full_name?.trim() ?? '',
+        phone: v.phone?.trim() ?? '',
+        zone_id: v.zone_id ? Number(v.zone_id) : null,
+      }
       if (editingId) return updateDriver(editingId, body)
       return createDriver(body)
     },
@@ -265,6 +272,7 @@ export function ResourceManagementPage() {
       pushToast('success', editingId ? 'Driver updated.' : 'Driver created.')
     },
   })
+
   const productMut = useMutation({
     mutationFn: async (v: ResourceFormValues) => {
       const body = {
@@ -340,7 +348,7 @@ export function ResourceManagementPage() {
   }
 
   function handleDeleteDriver(row: DriverRow) {
-    if (window.confirm(`Remove ${row.fullName} from the directory?`)) {
+    if (window.confirm(`Remove ${row.fullName}?`)) {
       void deleteDriver(row.id)
         .then(() => {
           void qc.invalidateQueries({ queryKey: ['drivers'] })
@@ -408,6 +416,13 @@ export function ResourceManagementPage() {
   }
 
   const addModalConfig = useMemo(() => {
+    const zoneDropdownOptions =
+      zones.length > 0
+        ? zones.map((z) => ({
+            value: String(z.id),
+            label: z.name || `${z.city} #${z.id}`,
+          }))
+        : []
     const editingDriver = editingId ? drivers.find((d) => String(d.id) === editingId) : undefined
     const editingProduct = editingId ? products.find((d) => String(d.id) === editingId) : undefined
     const editingZone = editingId ? zones.find((d) => String(d.id) === editingId) : undefined
@@ -476,7 +491,12 @@ export function ResourceManagementPage() {
         fields: [
           { key: 'full_name', label: 'Full name', required: true },
           { key: 'phone', label: 'Phone', required: true },
-          { key: 'zone_id', label: 'Zone ID', type: 'number' },
+          {
+            key: 'zone_id',
+            label: 'Zone',
+            type: 'select',
+            options: zoneDropdownOptions,
+          },
           { key: 'latitude', label: 'Latitude', type: 'number' },
           { key: 'longitude', label: 'Longitude', type: 'number' },
         ] satisfies ResourceFormField[],
@@ -538,7 +558,7 @@ export function ResourceManagementPage() {
         <KpiStatCard label="Total Drivers" value={String(driverRows.length)} hint="Active now" />
         <KpiStatCard label="Total Customers" value={String(customerRows.length)} hint="+12%" hintTone="success" />
         <KpiStatCard
-          className="col-span-2 md:col-span-1"
+          className="col-span-2 md:col-span-1 xl:col-span-1"
           label="Total Zones"
           value={String(zoneRows.length)}
           hint="Global Hubs"
@@ -571,11 +591,7 @@ export function ResourceManagementPage() {
         <>
           {view === 'drivers' ? (
             <>
-              <DriversTable
-                rows={pagedDrivers}
-                onEdit={handleEditDriver}
-                onDelete={handleDeleteDriver}
-              />
+              <DriversTable rows={pagedDrivers} onEdit={handleEditDriver} onDelete={handleDeleteDriver} />
               <PaginationBar
                 page={page}
                 pageSize={PAGE_SIZE}

@@ -10,10 +10,14 @@ import { RequestManagementPage } from '@/features/request-management'
 import { ResourceManagementPage } from '@/features/resource-management'
 import { GuestOnly, RequireAuth } from '@/features/auth/RequireAuth'
 import { FleetManagementPage } from '@/pages/FleetManagementPage'
+import { FleetVehicleProfilePage } from '@/pages/FleetVehicleProfilePage'
 import { TripManagementPage } from '@/pages/TripManagementPage'
+import { TripProfilePage } from '@/pages/TripProfilePage'
 import { UserManagementPage } from '@/pages/UserManagementPage'
 import { DriverSalesPosPage } from '@/pages/DriverSalesPosPage'
+import { DriverProfilePage } from '@/pages/DriverProfilePage'
 import { DriverSubmitRequestPage } from '@/pages/DriverSubmitRequestPage'
+import { InventoryAlertsPage } from '@/pages/InventoryAlertsPage'
 import { DriverTripPage } from '@/pages/DriverTripPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -21,6 +25,7 @@ import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { RouteErrorPage } from '@/pages/RouteErrorPage'
 import { useAuth } from '@/features/auth/AuthContext'
 import { getHomePath } from '@/features/auth/permissions'
+import { INVENTORY_ALERTS_PAGE_PATH } from '@/features/inventory-alerts/constants'
 import { appRoutes } from '@/routes/manifest'
 
 function RootRedirect() {
@@ -66,27 +71,32 @@ export const router = createBrowserRouter([
             <AppShell />
           </RequireAuth>
         ),
-        children: appRoutes
-          .filter((route) => !route.path.startsWith('/driver'))
-          .map((route) => ({
-            path: route.path,
-            element:
-              route.path === '/dashboard' ? (
-                <DashboardPage />
-              ) : route.path === '/fleet-management' ? (
-                <FleetManagementPage />
-              ) : route.path === '/trip-management' ? (
-                <TripManagementPage />
-              ) : route.path === '/resource-management' ? (
-                <ResourceManagementPage />
-              ) : route.path === '/request-management' ? (
-                <RequestManagementPage />
-              ) : route.path === '/user-management' ? (
-                <UserManagementPage />
-              ) : (
-                <PlaceholderPage route={route} />
-              ),
-          })),
+        children: [
+          ...appRoutes
+            .filter((route) => !route.path.startsWith('/driver'))
+            .map((route) => ({
+              path: route.path,
+              element:
+                route.path === '/dashboard' ? (
+                  <DashboardPage />
+                ) : route.path === '/fleet-management' ? (
+                  <FleetManagementPage />
+                ) : route.path === '/trip-management' ? (
+                  <TripManagementPage />
+                ) : route.path === '/resource-management' ? (
+                  <ResourceManagementPage />
+                ) : route.path === '/request-management' ? (
+                  <RequestManagementPage />
+                ) : route.path === '/user-management' ? (
+                  <UserManagementPage />
+                ) : (
+                  <PlaceholderPage route={route} />
+                ),
+            })),
+          { path: '/trip-management/:id', element: <TripProfilePage /> },
+          { path: '/fleet-management/vehicles/:id', element: <FleetVehicleProfilePage /> },
+          { path: INVENTORY_ALERTS_PAGE_PATH, element: <InventoryAlertsPage /> },
+        ],
       },
       {
         path: '/driver',
@@ -99,6 +109,7 @@ export const router = createBrowserRouter([
           { index: true, element: <DriverSubmitRequestPage /> },
           { path: 'trip', element: <DriverTripPage /> },
           { path: 'sales', element: <DriverSalesPosPage /> },
+          { path: 'profile', element: <DriverProfilePage /> },
         ],
       },
       {

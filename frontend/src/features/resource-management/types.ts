@@ -1,8 +1,4 @@
-export type ResourceView =
-  | 'drivers'
-  | 'products'
-  | 'zones'
-  | 'customers'
+export type ResourceView = 'drivers' | 'products' | 'zones' | 'customers'
 
 export type DriverStatus = 'Available' | 'On Trip' | 'Off Duty'
 
@@ -10,6 +6,7 @@ export interface DriverRow {
   id: string
   fullName: string
   driverId: string
+  userId: string
   phone: string
   zone: string
   vehicleModel: string
@@ -33,7 +30,6 @@ export interface ZoneRow {
   name: string
   city: string
   stores: number
-  assignedDrivers: number
   status: ZoneStatus
 }
 

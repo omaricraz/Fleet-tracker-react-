@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   BarChart3,
   BriefcaseBusiness,
   ClipboardList,
@@ -40,7 +41,6 @@ export const routeManifest: AppRouteMeta[] = [
     shell: 'app',
     group: 'workspace',
     showInSidebar: true,
-    showInMobileNav: true,
   },
   {
     path: '/platform',
@@ -51,7 +51,6 @@ export const routeManifest: AppRouteMeta[] = [
     shell: 'app',
     group: 'workspace',
     showInSidebar: true,
-    showInMobileNav: true,
   },
   {
     path: '/admin',
@@ -82,7 +81,16 @@ export const routeManifest: AppRouteMeta[] = [
     shell: 'app',
     group: 'workspace',
     showInSidebar: true,
-    showInMobileNav: true,
+  },
+  {
+    path: '/alerts',
+    title: 'Inventory Alerts',
+    navLabel: 'Alerts',
+    description: 'Inventory signals from GET /inventory/alerts: low stock, zero stock, and recent variance.',
+    icon: AlertTriangle,
+    shell: 'app',
+    group: 'operations',
+    showInSidebar: false,
   },
   {
     path: '/fleet-management',
@@ -93,7 +101,6 @@ export const routeManifest: AppRouteMeta[] = [
     shell: 'app',
     group: 'operations',
     showInSidebar: true,
-    showInMobileNav: true,
   },
   {
     path: '/trip-management',
@@ -104,7 +111,6 @@ export const routeManifest: AppRouteMeta[] = [
     shell: 'app',
     group: 'operations',
     showInSidebar: true,
-    showInMobileNav: true,
   },
   {
     path: '/resource-management',
@@ -155,7 +161,6 @@ export const routeManifest: AppRouteMeta[] = [
     shell: 'app',
     group: 'insights',
     showInSidebar: true,
-    showInMobileNav: true,
   },
 ]
 

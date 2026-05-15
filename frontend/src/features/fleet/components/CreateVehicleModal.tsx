@@ -1,5 +1,5 @@
 import { Loader2, X } from 'lucide-react'
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 
 import { Button } from '@/components/ui/button'
 
@@ -16,6 +16,9 @@ interface CreateVehicleModalProps {
   onClose: () => void
   submitting?: boolean
   onSubmit: (values: CreateVehicleValues) => void
+  mode?: 'create' | 'edit'
+  /** When `mode` is `edit`, used to prefill the form when the dialog opens. */
+  initialValues?: CreateVehicleValues | null
 }
 
 const INITIAL_VALUES: CreateVehicleValues = {
@@ -31,16 +34,32 @@ export function CreateVehicleModal({
   onClose,
   submitting = false,
   onSubmit,
+  mode = 'create',
+  initialValues = null,
 }: CreateVehicleModalProps) {
   const [values, setValues] = useState<CreateVehicleValues>(INITIAL_VALUES)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const prevOpenRef = useRef(false)
 
   useEffect(() => {
+    const wasOpen = prevOpenRef.current
+    prevOpenRef.current = open
+
     if (!open) {
       setValues(INITIAL_VALUES)
       setErrors({})
+      return
     }
-  }, [open])
+
+    if (!wasOpen) {
+      if (mode === 'edit' && initialValues) {
+        setValues({ ...INITIAL_VALUES, ...initialValues })
+      } else {
+        setValues(INITIAL_VALUES)
+      }
+      setErrors({})
+    }
+  }, [open, mode, initialValues])
 
   if (!open) return null
 
@@ -83,7 +102,7 @@ export function CreateVehicleModal({
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="dialog" aria-modal="true">
       <button
         type="button"
-        aria-label="Close add vehicle dialog"
+        aria-label={mode === 'edit' ? 'Close edit vehicle dialog' : 'Close add vehicle dialog'}
         className="absolute inset-0 bg-foreground/50 backdrop-blur-sm"
         onClick={() => {
           if (!submitting) onClose()
@@ -95,8 +114,14 @@ export function CreateVehicleModal({
       >
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-lg font-black text-foreground">Add vehicle</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Creates a new car via /api/v1/cars.</p>
+            <h2 className="text-lg font-black text-foreground">
+              {mode === 'edit' ? 'Edit vehicle' : 'Add vehicle'}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {mode === 'edit'
+                ? 'Update this vehicle via PUT /api/v1/cars/{id}.'
+                : 'Creates a new car via /api/v1/cars.'}
+            </p>
           </div>
           <Button
             type="button"
@@ -158,9 +183,6 @@ export function CreateVehicleModal({
               className={fieldClassName}
               placeholder="Optional"
             />
-            {errors.overall_volume_capacity ? (
-              <p className="text-xs font-semibold text-destructive">{errors.overall_volume_capacity}</p>
-            ) : null}
           </div>
 
           <div className="space-y-1.5">
@@ -183,6 +205,9 @@ export function CreateVehicleModal({
               className={fieldClassName}
               placeholder="Optional"
             />
+            {errors.overall_volume_capacity ? (
+              <p className="text-xs font-semibold text-destructive">{errors.overall_volume_capacity}</p>
+            ) : null}
           </div>
 
           <div className="space-y-1.5">
@@ -217,7 +242,7 @@ export function CreateVehicleModal({
           </Button>
           <Button type="submit" disabled={submitting}>
             {submitting ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
-            Create vehicle
+            {mode === 'edit' ? 'Save changes' : 'Create vehicle'}
           </Button>
         </div>
       </form>

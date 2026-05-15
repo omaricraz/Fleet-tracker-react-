@@ -34,6 +34,10 @@ export function updateDriver(id: number | string, body: Partial<StoreDriverBody>
   return apiRequest<DriverResource>(`/drivers/${id}`, { method: 'PUT', body })
 }
 
+export function patchDriver(id: number | string, body: Partial<StoreDriverBody>): Promise<DriverResource> {
+  return apiRequest<DriverResource>(`/drivers/${id}`, { method: 'PATCH', body })
+}
+
 export function getDriver(id: number | string): Promise<DriverResource> {
   return apiRequest<DriverResource>(`/drivers/${id}`)
 }

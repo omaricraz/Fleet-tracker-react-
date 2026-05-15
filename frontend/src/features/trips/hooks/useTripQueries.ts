@@ -51,8 +51,9 @@ export function useTripMutations() {
 
   const remove = useMutation({
     mutationFn: (tripId: number | string) => deleteTrip(tripId),
-    onSuccess: () => {
+    onSuccess: (_data, tripId) => {
       invalidateTrips()
+      void qc.invalidateQueries({ queryKey: ['trip', String(tripId)] })
     },
   })
 

@@ -1,6 +1,7 @@
-import { Bell, LogOut } from 'lucide-react'
+import { LogOut, Menu } from 'lucide-react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 
+import { InventoryAlertsBell } from '@/components/navigation/InventoryAlertsBell'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/AuthContext'
@@ -10,22 +11,52 @@ import { getRouteMeta } from '@/routes/manifest'
 const RESOURCE_VIEWS = [
   { id: 'products', label: 'Products' },
   { id: 'zones', label: 'Zones' },
-  { id: 'drivers', label: 'Drivers' },
   { id: 'customers', label: 'Customers' },
 ] as const
 
 type TopNavbarProps = {
   sidebarCollapsed?: boolean
+  mobileNavOpen?: boolean
+  onOpenMobileSidebar?: () => void
 }
 
-export function TopNavbar({ sidebarCollapsed = false }: TopNavbarProps = {}) {
+function MobileSidebarOpenButton({
+  mobileNavOpen,
+  onOpenMobileSidebar,
+}: {
+  mobileNavOpen?: boolean
+  onOpenMobileSidebar?: () => void
+}) {
+  if (!onOpenMobileSidebar) return null
+
+  return (
+    <Button
+      type="button"
+      variant="secondary"
+      size="icon"
+      className="shrink-0 rounded-full md:hidden"
+      aria-label="Open menu"
+      aria-expanded={mobileNavOpen ?? false}
+      aria-controls="app-sidebar-nav"
+      onClick={onOpenMobileSidebar}
+    >
+      <Menu className="size-5" aria-hidden />
+    </Button>
+  )
+}
+
+export function TopNavbar({
+  sidebarCollapsed = false,
+  mobileNavOpen = false,
+  onOpenMobileSidebar,
+}: TopNavbarProps = {}) {
   const { pathname } = useLocation()
   const [searchParams] = useSearchParams()
   const route = getRouteMeta(pathname)
   const { logout } = useAuth()
 
   const isResourceManagement = pathname === '/resource-management'
-  const activeView = searchParams.get('view') ?? 'drivers'
+  const activeView = searchParams.get('view') ?? 'products'
 
   const headerLeftOffset = sidebarCollapsed ? 'md:left-16' : 'md:left-72'
 
@@ -37,11 +68,17 @@ export function TopNavbar({ sidebarCollapsed = false }: TopNavbarProps = {}) {
           headerLeftOffset,
         )}
       >
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 sm:py-4 lg:flex-row lg:items-center lg:justify-between lg:px-10">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-3 py-3 sm:px-6 sm:py-4 lg:flex-row lg:items-center lg:justify-between lg:px-10">
           <div className="flex min-w-0 flex-1 flex-col gap-3 lg:flex-row lg:items-center lg:gap-8">
-            <span className="shrink-0 text-xl font-black tracking-tighter text-foreground lg:text-2xl">
-              Fleet Tracker
-            </span>
+            <div className="flex items-center gap-2 lg:gap-3">
+              <MobileSidebarOpenButton
+                mobileNavOpen={mobileNavOpen}
+                onOpenMobileSidebar={onOpenMobileSidebar}
+              />
+              <span className="shrink-0 text-xl font-black tracking-tighter text-foreground lg:text-2xl">
+                Fleet Tracker
+              </span>
+            </div>
             <nav
               className="-mx-1 flex gap-4 overflow-x-auto pb-1 md:gap-6 lg:mx-0 lg:pb-0"
               aria-label="Resource modules"
@@ -67,9 +104,7 @@ export function TopNavbar({ sidebarCollapsed = false }: TopNavbarProps = {}) {
             </nav>
           </div>
           <div className="flex items-center justify-end gap-1 sm:gap-2">
-            <Button variant="ghost" size="icon" className="rounded-full" aria-label="Notifications">
-              <Bell className="size-5" />
-            </Button>
+            <InventoryAlertsBell buttonVariant="ghost" />
             <ThemeToggle />
             <button
               type="button"
@@ -102,16 +137,22 @@ export function TopNavbar({ sidebarCollapsed = false }: TopNavbarProps = {}) {
         headerLeftOffset,
       )}
     >
-      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
-        <div className="min-w-0 space-y-1">
-          <p className="eyebrow">Fleet Tracker</p>
-          <div className="min-w-0">
-            <h2 className="truncate text-xl font-black tracking-[-0.03em] text-foreground">
-              {route.title}
-            </h2>
-            <p className="hidden truncate text-sm text-muted-foreground md:block">
-              {route.description}
-            </p>
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-3 px-3 sm:px-6 lg:px-10">
+        <div className="flex min-w-0 flex-1 items-start gap-2 sm:items-center sm:gap-3">
+          <MobileSidebarOpenButton
+            mobileNavOpen={mobileNavOpen}
+            onOpenMobileSidebar={onOpenMobileSidebar}
+          />
+          <div className="min-w-0 flex-1 space-y-1">
+            <p className="eyebrow">Fleet Tracker</p>
+            <div className="min-w-0">
+              <h2 className="truncate text-lg font-black tracking-[-0.03em] text-foreground sm:text-xl">
+                {route.title}
+              </h2>
+              <p className="hidden truncate text-sm text-muted-foreground md:block">
+                {route.description}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -119,9 +160,7 @@ export function TopNavbar({ sidebarCollapsed = false }: TopNavbarProps = {}) {
           <div className="hidden items-center gap-2 rounded-full bg-muted px-4 py-2.5 text-sm text-muted-foreground lg:flex">
             Search the command center
           </div>
-          <Button variant="secondary" size="icon" className="rounded-full" aria-label="Notifications">
-            <Bell />
-          </Button>
+          <InventoryAlertsBell buttonVariant="secondary" />
           <ThemeToggle />
           <Button
             variant="secondary"

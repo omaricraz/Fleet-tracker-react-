@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import type { ResourceView } from '../types'
 
 const searchPlaceholder: Record<ResourceView, string> = {
-  drivers: 'Search drivers by name, phone or vehicle...',
+  drivers: 'Search drivers by name, phone, ID, or user ID...',
   products: 'Search products by name, type, or SKU...',
   zones: 'Search zones by name or city...',
   customers: 'Search customers by name, phone, or location...',

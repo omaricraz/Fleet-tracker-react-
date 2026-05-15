@@ -1,16 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { useToast } from '@/components/providers/toast-provider'
 import { useAuth } from '@/features/auth/AuthContext'
+import { DriverLogoutButton } from '@/layouts/driver-logout-button'
 import { cn } from '@/lib/utils'
 import { ApiError } from '@/services/api/client'
 import { listCustomers } from '@/services/api/customers'
-import { listDrivers } from '@/services/api/drivers'
-import { listProducts } from '@/services/api/products'
+import { getDriverInventoryProducts } from '@/services/api/inventory'
 import { createSale, getMySales } from '@/services/api/sales'
-import { listTrips } from '@/services/api/trips'
+import type { CustomerResource, SaleRecord } from '@/services/api/types'
+import { getDriverCurrentTrip } from '@/services/api/trips'
 
 const DRIVER_AVATAR = '/stitch/driver-submit-request/driver-avatar.jpg'
 
@@ -22,6 +23,34 @@ const PLACEHOLDER =
 
 type PosTab = 'sale' | 'history'
 
+const NO_TRIP_FOR_SALES_DRIVER_MESSAGE =
+  'No trip has been created. Ask your manager to create a trip for you.'
+
+/** Parse catalog unit price safely for money math */
+function parseUnitPrice(price: unknown): number {
+  if (typeof price === 'number' && Number.isFinite(price)) return price
+  if (typeof price === 'string') {
+    const n = Number.parseFloat(price)
+    return Number.isFinite(n) ? n : 0
+  }
+  return 0
+}
+
+/** Round to 2 dp (unit × qty) without float drift, e.g. 19.99 × 3 → 59.97 */
+function saleLineTotal(unitPrice: number, quantity: number): number {
+  if (quantity <= 0 || unitPrice <= 0) return 0
+  return Math.round(unitPrice * quantity * 100) / 100
+}
+
+function looksLikeNoTripSaleApiError(message: string): boolean {
+  const m = message.toLowerCase()
+  return (
+    m.includes('no active trip') ||
+    (m.includes('open a trip') && m.includes('recording sales')) ||
+    (m.includes('trip') && m.includes('before recording sales'))
+  )
+}
+
 export function DriverSalesPosPage() {
   const { user } = useAuth()
   const { pushToast } = useToast()
@@ -29,31 +58,33 @@ export function DriverSalesPosPage() {
   const [tab, setTab] = useState<PosTab>('sale')
   const [qtyById, setQtyById] = useState<Record<string, number>>({})
 
-  const { data: driverId } = useQuery({
-    queryKey: ['driver-scope', user?.name],
-    queryFn: async () => {
-      if (!user?.name) return null
-      const { items } = await listDrivers({ per_page: 100, search: user.name })
-      const match = items.find((d) => d.full_name.trim() === user.name.trim())
-      return match?.id ?? null
-    },
-    enabled: Boolean(user?.name),
+  const { data: currentTrip, isFetched: currentTripFetched } = useQuery({
+    queryKey: ['driver', 'trip', 'current'],
+    queryFn: getDriverCurrentTrip,
+    enabled: Boolean(user),
   })
 
-  const { data: trips = [] } = useQuery({
-    queryKey: ['trips', 'pos-active', driverId],
-    queryFn: () => listTrips({ status: 'active', driver_id: driverId ?? undefined }),
-    enabled: driverId != null,
+  const activeTripId =
+    currentTrip && typeof currentTrip.id === 'number' ? currentTrip.id : null
+
+  const { data: inventoryRows = [], isLoading: productsLoading } = useQuery({
+    queryKey: ['driver', 'inventory', 'products'],
+    queryFn: getDriverInventoryProducts,
+    enabled: Boolean(user),
   })
 
-  const activeTrip = trips[0] ?? null
-  const activeTripId = activeTrip && typeof activeTrip.id === 'number' ? activeTrip.id : null
+  const products = useMemo(
+    () => inventoryRows.map((row) => row.product),
+    [inventoryRows],
+  )
 
-  const { data: productsPage, isLoading: productsLoading } = useQuery({
-    queryKey: ['products', 'pos'],
-    queryFn: () => listProducts({ per_page: 100, sort: 'item', direction: 'asc' }),
-  })
-  const products = productsPage?.items ?? []
+  const stockByProductId = useMemo(() => {
+    const m = new Map<number, number>()
+    for (const row of inventoryRows) {
+      m.set(row.product.id, row.quantity)
+    }
+    return m
+  }, [inventoryRows])
 
   useEffect(() => {
     if (products.length === 0) return
@@ -67,12 +98,49 @@ export function DriverSalesPosPage() {
     })
   }, [products])
 
-  const { data: customersPage } = useQuery({
-    queryKey: ['customers', 'pos'],
-    queryFn: () => listCustomers({ per_page: 50, sort: 'full_name', direction: 'asc' }),
+  const [customerPickerOpen, setCustomerPickerOpen] = useState(false)
+  const [customerSearchInput, setCustomerSearchInput] = useState('')
+  const [debouncedCustomerSearch, setDebouncedCustomerSearch] = useState('')
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerResource | null>(null)
+  const customerPickerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setDebouncedCustomerSearch(customerSearchInput.trim()), 350)
+    return () => window.clearTimeout(t)
+  }, [customerSearchInput])
+
+  useEffect(() => {
+    if (!customerPickerOpen) return
+    function onPointerDown(e: PointerEvent) {
+      if (customerPickerRef.current?.contains(e.target as Node)) return
+      setCustomerPickerOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [customerPickerOpen])
+
+  useEffect(() => {
+    if (!customerPickerOpen) return
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setCustomerPickerOpen(false)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [customerPickerOpen])
+
+  const { data: customersPage, isFetching: customersFetching } = useQuery({
+    queryKey: ['customers', 'pos', debouncedCustomerSearch],
+    queryFn: () =>
+      listCustomers({
+        per_page: 100,
+        sort: 'full_name',
+        direction: 'asc',
+        search: debouncedCustomerSearch || undefined,
+      }),
+    enabled: Boolean(user),
   })
   const customers = customersPage?.items ?? []
-  const customerId = customers[0]?.id ?? null
+  const customerId = selectedCustomer?.id ?? null
 
   const { data: mySales = [], isLoading: salesLoading } = useQuery({
     queryKey: ['sales', 'my'],
@@ -80,10 +148,28 @@ export function DriverSalesPosPage() {
   })
 
   const saleMut = useMutation({
-    mutationFn: createSale,
+    mutationFn: async (payload: {
+      trip_id: number
+      customer_id: number
+      lines: Array<{ product_id: number; quantity: number; total_price: number }>
+    }) => {
+      const results: SaleRecord[] = []
+      for (const line of payload.lines) {
+        results.push(
+          await createSale({
+            trip_id: payload.trip_id,
+            customer_id: payload.customer_id,
+            product_id: line.product_id,
+            quantity: line.quantity,
+            total_price: line.total_price,
+          }),
+        )
+      }
+      return results
+    },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['sales', 'my'] })
-      void qc.invalidateQueries({ queryKey: ['trips'] })
+      void qc.invalidateQueries({ queryKey: ['driver', 'inventory', 'products'] })
     },
   })
 
@@ -93,9 +179,10 @@ export function DriverSalesPosPage() {
     for (const p of products) {
       const k = String(p.id)
       const q = qtyById[k] ?? 0
-      const price = Number(p.price) || 0
+      if (q <= 0) continue
+      const unit = parseUnitPrice(p.price)
       items += q
-      sum += q * price
+      sum += saleLineTotal(unit, q)
     }
     return { itemCount: items, subtotal: sum }
   }, [qtyById, products])
@@ -106,11 +193,11 @@ export function DriverSalesPosPage() {
 
   async function recordSales() {
     if (activeTripId == null) {
-      pushToast('error', 'You need an active trip to record sales.')
+      pushToast('error', NO_TRIP_FOR_SALES_DRIVER_MESSAGE)
       return
     }
     if (customerId == null) {
-      pushToast('error', 'Add a customer in resource management first.')
+      pushToast('error', 'Select a customer before recording the sale.')
       return
     }
     const lines = products.filter((p) => (qtyById[String(p.id)] ?? 0) > 0)
@@ -119,17 +206,20 @@ export function DriverSalesPosPage() {
       return
     }
     try {
-      for (const p of lines) {
+      const saleLines = lines.map((p) => {
         const qty = qtyById[String(p.id)] ?? 0
-        const unit = Number(p.price) || 0
-        await saleMut.mutateAsync({
-          trip_id: activeTripId,
-          product_id: p.id,
-          customer_id: customerId,
+        const unit = parseUnitPrice(p.price)
+        return {
+          product_id: Number(p.id),
           quantity: qty,
-          total_price: unit * qty,
-        })
-      }
+          total_price: saleLineTotal(unit, qty),
+        }
+      })
+      await saleMut.mutateAsync({
+        trip_id: activeTripId,
+        customer_id: customerId,
+        lines: saleLines,
+      })
       pushToast('success', 'Sale recorded.')
       setQtyById((prev) => {
         const next = { ...prev }
@@ -137,7 +227,12 @@ export function DriverSalesPosPage() {
         return next
       })
     } catch (e) {
-      pushToast('error', e instanceof ApiError ? e.message : 'Sale could not be saved.')
+      if (e instanceof ApiError && looksLikeNoTripSaleApiError(e.message)) {
+        pushToast('error', NO_TRIP_FOR_SALES_DRIVER_MESSAGE)
+      } else {
+        const fallback = e instanceof ApiError ? e.firstFieldError() ?? e.message : 'Sale could not be saved.'
+        pushToast('error', fallback)
+      }
     }
   }
 
@@ -159,18 +254,26 @@ export function DriverSalesPosPage() {
               Fleet Sales
             </h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <DriverLogoutButton
+              iconClassName="dark:text-[#afc8ed]/90"
+              className="rounded-full p-1.5 text-muted-foreground hover:text-primary dark:hover:text-[#d3e4ff]"
+            />
             <div className="hidden text-right sm:block">
               <p className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase dark:text-[#afc8ed]/80">
                 Active Trip
               </p>
               <p className="text-xs font-semibold text-primary dark:text-[#d3e4ff]">
                 {activeTripId != null
-                  ? `Trip #${activeTripId}${customers[0]?.full_name ? ` · ${customers[0].full_name}` : ''}`
-                  : 'No active trip'}
+                  ? `Trip #${activeTripId}${selectedCustomer?.full_name ? ` · ${selectedCustomer.full_name}` : ''}`
+                  : 'No trip assigned'}
               </p>
             </div>
-            <div className="flex size-10 items-center justify-center overflow-hidden rounded-full border-2 border-primary-fixed bg-surface-high dark:border-[#d3e4ff]/50">
+            <Link
+              to="/driver/profile"
+              className="flex size-10 items-center justify-center overflow-hidden rounded-full border-2 border-primary-fixed bg-surface-high dark:border-[#d3e4ff]/50"
+              aria-label="Open profile"
+            >
               <img
                 alt=""
                 className="size-full object-cover"
@@ -179,7 +282,7 @@ export function DriverSalesPosPage() {
                 width={40}
                 height={40}
               />
-            </div>
+            </Link>
           </div>
         </div>
       </header>
@@ -214,36 +317,136 @@ export function DriverSalesPosPage() {
 
         {tab === 'sale' ? (
           <>
+            {currentTripFetched && activeTripId == null ? (
+              <div
+                className="mb-4 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-foreground dark:border-amber-400/30 dark:bg-amber-950/40"
+                role="status"
+              >
+                {NO_TRIP_FOR_SALES_DRIVER_MESSAGE}
+              </div>
+            ) : null}
             <section className="mb-6">
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">
-                  Current Stop
+                  Customer Selected
                 </h2>
                 <span className="rounded-full bg-primary-fixed px-2 py-0.5 text-[10px] font-medium text-accent-foreground">
-                  Route Optimized
+                  Customer
                 </span>
               </div>
-              <button
-                type="button"
-                className="flex w-full cursor-pointer items-center justify-between rounded-xl bg-surface-lowest p-4 text-left shadow-[var(--shadow-soft)] transition-all active:scale-[0.98] dark:bg-card"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="flex size-12 items-center justify-center rounded-xl bg-surface-high dark:bg-muted">
-                    <span className="material-symbols-outlined text-primary dark:text-primary-foreground">
-                      storefront
-                    </span>
+              <div ref={customerPickerRef} className="relative">
+                <button
+                  type="button"
+                  aria-expanded={customerPickerOpen}
+                  aria-haspopup="listbox"
+                  aria-controls="driver-pos-customer-listbox"
+                  className="flex w-full cursor-pointer items-center justify-between rounded-xl bg-surface-lowest p-4 text-left shadow-[var(--shadow-soft)] transition-all active:scale-[0.98] dark:bg-card"
+                  onClick={() => {
+                    setCustomerPickerOpen((o) => {
+                      const next = !o
+                      if (next) {
+                        setCustomerSearchInput('')
+                        setDebouncedCustomerSearch('')
+                      }
+                      return next
+                    })
+                  }}
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-4">
+                    <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-surface-high dark:bg-muted">
+                      <span className="material-symbols-outlined text-primary dark:text-primary-foreground">
+                        storefront
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="truncate font-bold text-primary dark:text-primary-foreground">
+                        {selectedCustomer?.full_name ?? 'Choose customer for this sale'}
+                      </h3>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {selectedCustomer?.phone ?? 'Search or pick from your directory'}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-primary dark:text-primary-foreground">
-                      {customers[0]?.full_name ?? 'Select customers in resources'}
-                    </h3>
-                    <p className="text-xs text-muted-foreground">
-                      {customers[0]?.phone ?? '—'}
-                    </p>
+                  <span
+                    className={cn(
+                      'material-symbols-outlined shrink-0 text-[var(--outline-variant)] transition-transform',
+                      customerPickerOpen && 'rotate-180',
+                    )}
+                  >
+                    expand_more
+                  </span>
+                </button>
+
+                {customerPickerOpen ? (
+                  <div
+                    id="driver-pos-customer-picker"
+                    role="presentation"
+                    className="absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-xl border border-border/60 bg-surface-lowest shadow-[var(--shadow-soft)] dark:border-border/40 dark:bg-card"
+                  >
+                    <label className="block border-b border-border/40 px-3 pt-3 pb-2 dark:border-border/40">
+                      <span className="sr-only">Search customers</span>
+                      <div className="flex items-center gap-2 rounded-lg bg-surface-low px-3 py-2 dark:bg-muted">
+                        <span className="material-symbols-outlined text-lg text-muted-foreground">search</span>
+                        <input
+                          type="search"
+                          autoComplete="off"
+                          autoCorrect="off"
+                          spellCheck={false}
+                          placeholder="Type name or phone…"
+                          className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+                          value={customerSearchInput}
+                          onChange={(e) => setCustomerSearchInput(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          aria-controls="driver-pos-customer-listbox"
+                          aria-autocomplete="list"
+                        />
+                      </div>
+                    </label>
+
+                    <ul
+                      id="driver-pos-customer-listbox"
+                      role="listbox"
+                      aria-label="Customers"
+                      className="max-h-56 overflow-y-auto py-1"
+                    >
+                      {customersFetching ? (
+                        <li className="px-4 py-6 text-center text-sm text-muted-foreground">Loading…</li>
+                      ) : customers.length === 0 ? (
+                        <li className="px-4 py-6 text-center text-sm text-muted-foreground">
+                          No customers match. Try another search or add customers in Resources.
+                        </li>
+                      ) : (
+                        customers.map((c) => {
+                          const isSelected = selectedCustomer?.id === c.id
+                          return (
+                            <li key={c.id} role="presentation">
+                              <button
+                                type="button"
+                                role="option"
+                                aria-selected={isSelected}
+                                className={cn(
+                                  'flex w-full flex-col gap-0.5 px-4 py-3 text-left text-sm transition-colors',
+                                  isSelected
+                                    ? 'bg-primary/10 font-semibold text-primary dark:bg-primary/15'
+                                    : 'hover:bg-surface-low dark:hover:bg-muted',
+                                )}
+                                onClick={() => {
+                                  setSelectedCustomer(c)
+                                  setCustomerPickerOpen(false)
+                                  setCustomerSearchInput('')
+                                }}
+                              >
+                                <span className="font-bold text-foreground">{c.full_name}</span>
+                                <span className="text-xs text-muted-foreground">{c.phone}</span>
+                              </button>
+                            </li>
+                          )
+                        })
+                      )}
+                    </ul>
                   </div>
-                </div>
-                <span className="material-symbols-outlined text-[var(--outline-variant)]">expand_more</span>
-              </button>
+                ) : null}
+              </div>
             </section>
 
             <section className="mb-8">
@@ -273,12 +476,13 @@ export function DriverSalesPosPage() {
                 {productsLoading ? (
                   <p className="col-span-2 text-center text-sm text-muted-foreground">Loading catalog…</p>
                 ) : products.length === 0 ? (
-                  <p className="col-span-2 text-center text-sm text-muted-foreground">No products in tenant.</p>
+                  <p className="col-span-2 text-center text-sm text-muted-foreground">No inventory on this trip.</p>
                 ) : (
                   products.map((p) => {
                     const id = String(p.id)
                     const q = qtyById[id] ?? 0
-                    const price = Number(p.price) || 0
+                    const stock = stockByProductId.get(p.id) ?? 0
+                    const price = parseUnitPrice(p.price)
                     const name = p.item
                     return (
                       <div
@@ -295,6 +499,10 @@ export function DriverSalesPosPage() {
                           />
                         </div>
                         <h4 className="mb-1 text-sm font-bold text-foreground">{name}</h4>
+                        <p className="mb-1 text-[11px] font-medium text-muted-foreground">
+                          Stock:{' '}
+                          {Number.isInteger(stock) ? stock : stock.toFixed(2)}
+                        </p>
                         <p className="mb-3 text-xs font-semibold text-primary dark:text-primary-foreground">
                           ${price.toFixed(2)}
                         </p>

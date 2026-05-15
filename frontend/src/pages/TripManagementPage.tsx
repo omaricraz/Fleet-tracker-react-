@@ -1,57 +1,160 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { Eye, Plus, Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
+import { FilterBar } from '@/components/FilterBar'
 import { LoadingSkeleton } from '@/components/LoadingSkeleton'
+import { PageHeader } from '@/components/PageHeader'
 import { useToast } from '@/components/providers/toast-provider'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/features/auth/AuthContext'
 import { type CreateTripValues, CreateTripModal } from '@/features/trips/components/CreateTripModal'
-import { type InventoryActionMode, InventoryActionModal } from '@/features/trips/components/InventoryActionModal'
-import { useTripDetailQuery, useTripMutations } from '@/features/trips/hooks/useTripQueries'
-import { useTripOperationsQueries } from '@/features/trips/hooks/useTripOperationsQueries'
-import { exportOperationsToCsv, filterTripOperationRows } from '@/features/trips/lib/filterOperationRows'
-import { mapTripDetailToWorkspace } from '@/features/trips/lib/mapTrip'
-import {
-  aggregateSalesByTrip,
-  computeCarStockValues,
-  computeFleetOperationsKpis,
-  countPendingRequestsByDriver,
-  mapTripListItemToOperationRow,
-} from '@/features/trips/lib/tripOperationsData'
-import { TripOperationDrawer } from '@/features/trips/operations/trip-operation-drawer'
-import { TripOperationsFilterBar } from '@/features/trips/operations/trip-operations-filter-bar'
-import { TripOperationsKpiStrip } from '@/features/trips/operations/trip-operations-kpi-strip'
-import { TripOperationsTable } from '@/features/trips/operations/trip-operations-table'
-import type { TripOperationRow } from '@/features/trips/lib/tripOperationsData'
-import {
-  defaultTripOperationsFilters,
-  type OperationDrawerTabId,
-} from '@/features/trips/operations/types'
-import type { FleetRequestApiRecord } from '@/services/api/requests'
+import { useTripMutations, useTripsQuery } from '@/features/trips/hooks/useTripQueries'
+import { PaginationBar } from '@/features/resource-management/components/PaginationBar'
 import { ApiError } from '@/services/api/client'
 import { listCars } from '@/services/api/cars'
 import { listDrivers } from '@/services/api/drivers'
-import { postCloseCount, postInventoryLoad, postOpeningBalance } from '@/services/api/inventory'
-import { listProducts } from '@/services/api/products'
 import { listZones } from '@/services/api/zones'
 import type { ListTripsQuery } from '@/services/api/trips'
-import type { TripListItem } from '@/services/api/types'
+import type { CarResource, DriverResource, TripListItem, ZoneResource } from '@/services/api/types'
 import { cn } from '@/lib/utils'
+
+const PAGE_SIZE = 10
+
+type AppliedFilters = {
+  search: string
+  status: 'all' | 'active' | 'closed'
+  driverId: string
+  zoneId: string
+  dateFrom: string
+  dateTo: string
+}
+
+const DEFAULT_FILTERS: AppliedFilters = {
+  search: '',
+  status: 'all',
+  driverId: '',
+  zoneId: '',
+  dateFrom: '',
+  dateTo: '',
+}
+
+function pickString(v: unknown): string {
+  if (typeof v === 'string') return v
+  if (v == null) return ''
+  return String(v)
+}
+
+function formatTripDate(iso: unknown): string {
+  const s = pickString(iso).trim()
+  if (!s) return '—'
+  const d = new Date(s)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+function tripDriverName(t: TripListItem): string {
+  const d = t.driver as DriverResource | undefined | null
+  return (d?.full_name ?? '').trim() || '—'
+}
+
+function tripZoneSubtitle(t: TripListItem): string {
+  const z = t.zone as ZoneResource | Record<string, unknown> | undefined | null
+  if (z && typeof z === 'object') {
+    const name = pickString((z as ZoneResource).name).trim()
+    const city = pickString((z as ZoneResource).city).trim()
+    if (name && city) return `${name} · ${city}`
+    if (name) return name
+    if (city) return city
+  }
+  const dest = pickString(t.destination).trim()
+  return dest || 'No zone'
+}
+
+function tripVehicleLabel(t: TripListItem): { model: string; plate: string } {
+  const c = t.car as CarResource | undefined | null
+  return {
+    model: pickString(c?.model).trim() || '—',
+    plate: pickString(c?.plate_number).trim(),
+  }
+}
+
+function tripRawStatus(t: TripListItem): string {
+  return pickString(t.status).toLowerCase() || 'active'
+}
+
+function initialsFromName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length >= 2) return `${parts[0]![0]!}${parts[1]![0]!}`.toUpperCase()
+  const n = name.trim()
+  if (n.length >= 2) return n.slice(0, 2).toUpperCase()
+  return (n.slice(0, 1) || '?').toUpperCase()
+}
+
+function avatarHueSeed(id: number): number {
+  const hues = [215, 142, 35, 280, 175, 325]
+  return hues[Math.abs(id) % hues.length]!
+}
+
+function dateKeyIso(iso: unknown): string | null {
+  const s = pickString(iso).trim()
+  if (!s) return null
+  const d = new Date(s)
+  if (Number.isNaN(d.getTime())) return null
+  return d.toISOString().slice(0, 10)
+}
+
+function passesSearch(t: TripListItem, q: string): boolean {
+  if (!q.trim()) return true
+  const needle = q.toLowerCase()
+  const driver = tripDriverName(t).toLowerCase()
+  const zone = tripZoneSubtitle(t).toLowerCase()
+  const { model, plate } = tripVehicleLabel(t)
+  const carStr = `${model} ${plate}`.toLowerCase()
+  const idStr = String(t.id)
+  return (
+    driver.includes(needle) || zone.includes(needle) || carStr.includes(needle) || idStr.includes(needle)
+  )
+}
+
+function passesDateRange(t: TripListItem, from: string, to: string): boolean {
+  if (!from && !to) return true
+  const keys = [dateKeyIso((t as { start_date?: unknown }).start_date), dateKeyIso(t.created_at)].filter(
+    Boolean,
+  ) as string[]
+  const effective = keys[0]
+  if (!effective) return true
+  if (from && effective < from) return false
+  if (to && effective > to) return false
+  return true
+}
+
+function passesStatus(t: TripListItem, status: AppliedFilters['status']): boolean {
+  if (status === 'all') return true
+  const raw = tripRawStatus(t)
+  if (status === 'closed') return raw === 'closed'
+  return raw !== 'closed'
+}
+
+function passesZoneSelection(t: TripListItem, zoneId: string): boolean {
+  if (!zoneId) return true
+  const wanted = Number(zoneId)
+  if (!Number.isInteger(wanted) || wanted <= 0) return true
+  const z = t.zone as ZoneResource | null | undefined
+  const tid = z && typeof z === 'object' ? Number((z as ZoneResource).id) : NaN
+  return Number.isInteger(tid) && tid === wanted
+}
 
 export function TripManagementPage() {
   const { user } = useAuth()
   const { pushToast } = useToast()
+  const navigate = useNavigate()
+
+  const canCreateOrDelete = user?.role === 'admin' || user?.role === 'manager'
+
   const [driverScopeId, setDriverScopeId] = useState<number | null>(null)
-  const [filters, setFilters] = useState(defaultTripOperationsFilters)
-  const [kpiFilterKey, setKpiFilterKey] = useState<string | null>(null)
-  const [liveMode, setLiveMode] = useState(false)
-  const [drawerTab, setDrawerTab] = useState<OperationDrawerTabId>('timeline')
-
-  const canManageFleet = user?.role === 'admin' || user?.role === 'manager'
-  const canOperateInventory =
-    user?.role === 'driver' || user?.role === 'admin' || user?.role === 'manager'
-
   useEffect(() => {
     if (user?.role !== 'driver' || !user?.name) {
       setDriverScopeId(null)
@@ -68,122 +171,137 @@ export function TripManagementPage() {
     }
   }, [user?.role, user?.name])
 
-  const listParams = useMemo<ListTripsQuery>(() => {
+  const [draft, setDraft] = useState<AppliedFilters>(DEFAULT_FILTERS)
+  const [applied, setApplied] = useState<AppliedFilters>(DEFAULT_FILTERS)
+
+  const [page, setPage] = useState(1)
+  const [createModalOpen, setCreateModalOpen] = useState(false)
+
+  const apiFilters = useMemo<ListTripsQuery>(() => {
     if (user?.role === 'driver' && driverScopeId != null) {
       return { driver_id: driverScopeId }
     }
     const p: ListTripsQuery = {}
-    if (filters.driverId) {
-      const id = Number(filters.driverId)
+    if (applied.driverId) {
+      const id = Number(applied.driverId)
       if (Number.isInteger(id) && id > 0) p.driver_id = id
     }
-    if (filters.vehicleId) {
-      const id = Number(filters.vehicleId)
-      if (Number.isInteger(id) && id > 0) p.car_id = id
+    if (applied.zoneId) {
+      const id = Number(applied.zoneId)
+      if (Number.isInteger(id) && id > 0) p.zone_id = id
     }
-    if (filters.tripStatus !== 'all') {
-      p.status = filters.tripStatus
+    if (applied.status !== 'all') {
+      p.status = applied.status === 'closed' ? 'closed' : 'active'
     }
+    if (applied.dateFrom) p.date_from = applied.dateFrom
+    if (applied.dateTo) p.date_to = applied.dateTo
     return p
-  }, [user?.role, driverScopeId, filters.driverId, filters.vehicleId, filters.tripStatus])
+  }, [
+    applied.dateFrom,
+    applied.dateTo,
+    applied.driverId,
+    applied.status,
+    applied.zoneId,
+    driverScopeId,
+    user?.role,
+  ])
 
-  const {
-    tripsQuery,
-    salesQuery,
-    alertsQuery,
-    pendingRequestsQuery,
-    fleetSnapshotQuery,
-    productsById,
-  } = useTripOperationsQueries({
-    listParams,
-    salesDateFrom: filters.dateFrom,
-    salesDateTo: filters.dateTo,
-    liveMode,
-    loadFleetSnapshot: canManageFleet,
-    loadAlerts: canManageFleet,
-    loadPendingRequests: canManageFleet,
+  const tripsQuery = useTripsQuery(apiFilters)
+  const { remove, create } = useTripMutations()
+
+  const { data: createDriversRes, isError: createDriversError } = useQuery({
+    queryKey: ['drivers', 'trip-list-options'],
+    queryFn: () => listDrivers({ per_page: 500, sort: 'full_name', direction: 'asc' }),
+    enabled: user?.role !== 'driver',
+  })
+  const { data: createZonesRes, isError: createZonesError } = useQuery({
+    queryKey: ['zones', 'trip-list-options'],
+    queryFn: () => listZones({ per_page: 500, sort: 'name', direction: 'asc' }),
+    enabled: user?.role !== 'driver',
+  })
+  const { data: createCarsRes } = useQuery({
+    queryKey: ['cars', 'trip-create-options'],
+    queryFn: () => listCars({ per_page: 500, sort: 'id', direction: 'asc' }),
+    enabled: canCreateOrDelete,
   })
 
-  const rawTrips = tripsQuery.data ?? []
-  const sales = salesQuery.data ?? []
-  const alerts = (alertsQuery.data ?? undefined) as Record<string, unknown> | undefined
-  const pendingReqs = pendingRequestsQuery.data ?? []
-
-  const [selectedId, setSelectedId] = useState<string>('')
-  const [mobilePanelOpen, setMobilePanelOpen] = useState(false)
-  const [createModalOpen, setCreateModalOpen] = useState(false)
-  const [inventoryActionOpen, setInventoryActionOpen] = useState(false)
-  const [inventoryActionMode, setInventoryActionMode] = useState<InventoryActionMode | null>(null)
-  const [closeCountPending, setCloseCountPending] = useState(false)
-  const [openingPending, setOpeningPending] = useState(false)
-  const [loadPending, setLoadPending] = useState(false)
-
-  const { open, close, remove, create } = useTripMutations()
-  const { data: detailData, isFetching: detailLoading } = useTripDetailQuery(selectedId || null)
-  const { data: productsData } = useQuery({
-    queryKey: ['products', 'trip-close-count'],
-    queryFn: () => listProducts({ per_page: 500, sort: 'item', direction: 'asc' }),
-  })
-
-  const stockByCar = useMemo(() => {
-    if (!fleetSnapshotQuery.data || !canManageFleet) return null
-    return computeCarStockValues(fleetSnapshotQuery.data, productsById)
-  }, [fleetSnapshotQuery.data, productsById, canManageFleet])
-
-  const salesByTrip = useMemo(() => aggregateSalesByTrip(sales), [sales])
-  const pendingByDriver = useMemo(() => countPendingRequestsByDriver(pendingReqs), [pendingReqs])
-
-  const operationRows = useMemo(
-    () =>
-      rawTrips.map((t: TripListItem) =>
-        mapTripListItemToOperationRow(t, salesByTrip, pendingByDriver, alerts, stockByCar),
-      ),
-    [rawTrips, salesByTrip, pendingByDriver, alerts, stockByCar],
-  )
-
-  const filteredRows = useMemo(
-    () => filterTripOperationRows(operationRows, filters, kpiFilterKey),
-    [operationRows, filters, kpiFilterKey],
-  )
-
-  const kpiCards = useMemo(
-    () =>
-      computeFleetOperationsKpis({
-        trips: rawTrips,
-        sales,
-        alerts,
-        pendingRequestCount: pendingReqs.filter(
-          (r: FleetRequestApiRecord) => String(r.status).toLowerCase() === 'pending',
-        ).length,
-      }),
-    [rawTrips, sales, alerts, pendingReqs],
-  )
+  useEffect(() => {
+    if (createDriversError || createZonesError) {
+      pushToast('error', 'Could not load driver or zone options.')
+    }
+  }, [createDriversError, createZonesError, pushToast])
 
   useEffect(() => {
-    if (filteredRows.length === 0) {
-      setSelectedId('')
-      return
-    }
-    if (selectedId && !filteredRows.some((t: TripOperationRow) => t.id === selectedId)) {
-      setSelectedId(filteredRows[0]!.id)
-    }
-  }, [filteredRows, selectedId])
+    setPage(1)
+  }, [applied])
 
-  useEffect(() => {
-    if (!selectedId && filteredRows.length > 0) {
-      setSelectedId(filteredRows[0]!.id)
-    }
-  }, [filteredRows, selectedId])
+  const driverOptions = useMemo(
+    () =>
+      (createDriversRes?.items ?? []).map((d) => ({
+        id: d.id,
+        label: d.full_name || `Driver #${d.id}`,
+      })),
+    [createDriversRes],
+  )
 
-  const workspaceDetail = useMemo(() => {
-    if (!detailData) return null
-    return mapTripDetailToWorkspace(detailData)
-  }, [detailData])
+  const zoneOptions = useMemo(
+    () =>
+      (createZonesRes?.items ?? []).map((z) => ({
+        id: z.id,
+        label: z.name?.trim() ? z.name : `${z.city} #${z.id}`,
+      })),
+    [createZonesRes],
+  )
 
-  const selectTrip = useCallback((id: string) => {
-    setSelectedId(id)
-    setDrawerTab('timeline')
-    setMobilePanelOpen(true)
+  const createDriverOptions = driverOptions
+  const createZoneOptions = useMemo(
+    () =>
+      (createZonesRes?.items ?? []).map((zone) => ({
+        id: zone.id,
+        label: zone.name || `${zone.city} #${zone.id}`,
+      })),
+    [createZonesRes],
+  )
+  const createCarOptions = useMemo(
+    () =>
+      (createCarsRes?.items ?? []).map((car) => ({
+        id: car.id,
+        label: `${car.model} (${car.plate_number})`,
+      })),
+    [createCarsRes],
+  )
+
+  const filteredTrips = useMemo(() => {
+    const rows = tripsQuery.data ?? []
+    let out = rows.slice()
+    out = out.filter((t) => passesStatus(t, applied.status))
+    out = out.filter((t) => passesZoneSelection(t, applied.zoneId))
+    out = out.filter((t) => passesSearch(t, applied.search))
+    out = out.filter((t) => passesDateRange(t, applied.dateFrom, applied.dateTo))
+    const sortRecent = [...out].sort((a, b) => {
+      const ta = pickString(a.created_at)
+      const tb = pickString(b.created_at)
+      return tb.localeCompare(ta)
+    })
+    return sortRecent
+  }, [applied, tripsQuery.data])
+
+  const total = filteredTrips.length
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+
+  const pagedTrips = useMemo(
+    () => filteredTrips.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filteredTrips, safePage],
+  )
+
+  const applyFilters = useCallback(() => {
+    setApplied({ ...draft })
+  }, [draft])
+
+  const clearFilters = useCallback(() => {
+    setDraft({ ...DEFAULT_FILTERS })
+    setApplied({ ...DEFAULT_FILTERS })
   }, [])
 
   const reportError = useCallback(
@@ -194,191 +312,17 @@ export function TripManagementPage() {
     [pushToast],
   )
 
-  const handleInventoryActionOpen = useCallback((mode: InventoryActionMode) => {
-    setInventoryActionMode(mode)
-    setInventoryActionOpen(true)
-  }, [])
-
-  const handleInventoryActionSubmit = useCallback(
-    (items: Array<{ product_id: number; quantity: number }>) => {
-      if (!selectedId || !detailData?.car || typeof detailData.car !== 'object') {
-        pushToast('error', 'Trip car is required to submit inventory action.')
-        return
-      }
-      const carIdRaw = (detailData.car as { id?: unknown }).id
-      const carId = Number(carIdRaw)
-      if (!Number.isInteger(carId) || carId <= 0) {
-        pushToast('error', 'Trip car is invalid for inventory action.')
-        return
-      }
-
-      const tripId = Number(selectedId)
-      const validTripId = Number.isInteger(tripId) && tripId > 0 ? tripId : null
-      if (inventoryActionMode === 'opening') {
-        setOpeningPending(true)
-        void postOpeningBalance({
-          trip_id: validTripId,
-          items: items.map((item) => ({
-            car_id: carId,
-            product_id: item.product_id,
-            actual_quantity: item.quantity,
-          })),
-        })
-          .then(() => {
-            pushToast('success', 'Opening balance submitted.')
-            setInventoryActionOpen(false)
-            setInventoryActionMode(null)
-          })
-          .catch(reportError)
-          .finally(() => setOpeningPending(false))
-        return
-      }
-      if (inventoryActionMode === 'load') {
-        setLoadPending(true)
-        void postInventoryLoad({
-          cars: [{ car_id: carId, trip_id: validTripId, items }],
-        })
-          .then(() => {
-            pushToast('success', 'Inventory load submitted.')
-            setInventoryActionOpen(false)
-            setInventoryActionMode(null)
-          })
-          .catch(reportError)
-          .finally(() => setLoadPending(false))
-        return
-      }
-      if (inventoryActionMode === 'closeCount') {
-        setCloseCountPending(true)
-        void postCloseCount({
-          trip_id: validTripId,
-          car_id: carId,
-          items: items.map((item) => ({
-            product_id: item.product_id,
-            actual_quantity: item.quantity,
-          })),
-        })
-          .then(() => {
-            pushToast('success', 'Close count submitted.')
-            setInventoryActionOpen(false)
-            setInventoryActionMode(null)
-          })
-          .catch(reportError)
-          .finally(() => setCloseCountPending(false))
-      }
-    },
-    [selectedId, detailData, inventoryActionMode, pushToast, reportError],
-  )
-
-  const handleEndTrip = useCallback(
-    (tripId?: string) => {
-      const targetTripId = tripId ?? selectedId
-      if (!targetTripId) return
-      if (!window.confirm('Close this trip? Ensure closing inventory count was submitted.')) return
-      void close
-        .mutateAsync(targetTripId)
-        .then(() => pushToast('success', 'Trip closed.'))
+  const handleDelete = useCallback(
+    (trip: TripListItem) => {
+      if (!canCreateOrDelete) return
+      if (!window.confirm(`Delete trip #${trip.id}? This cannot be undone.`)) return
+      void remove
+        .mutateAsync(String(trip.id))
+        .then(() => pushToast('success', 'Trip deleted.'))
         .catch(reportError)
     },
-    [selectedId, close, pushToast, reportError],
+    [canCreateOrDelete, remove, pushToast, reportError],
   )
-
-  const handleDeleteTrip = useCallback(() => {
-    if (!selectedId) return
-    if (!window.confirm('Delete this trip? This cannot be undone.')) return
-    void remove
-      .mutateAsync(selectedId)
-      .then(() => {
-        pushToast('success', 'Trip deleted.')
-        setSelectedId('')
-      })
-      .catch(reportError)
-  }, [selectedId, remove, pushToast, reportError])
-
-  const tripPending =
-    closeCountPending || openingPending || loadPending || open.isPending || close.isPending || remove.isPending
-
-  const closeCountProducts = useMemo(
-    () =>
-      (productsData?.items ?? []).map((product) => ({
-        id: product.id,
-        label: product.item || `Product #${product.id}`,
-      })),
-    [productsData],
-  )
-
-  const { data: createDriversRes, isError: createDriversError } = useQuery({
-    queryKey: ['drivers', 'trip-create-options'],
-    queryFn: () => listDrivers({ per_page: 500, sort: 'full_name', direction: 'asc' }),
-  })
-  const { data: createCarsRes, isError: createCarsError } = useQuery({
-    queryKey: ['cars', 'trip-create-options'],
-    queryFn: () => listCars({ per_page: 500, sort: 'id', direction: 'asc' }),
-  })
-  const { data: createZonesRes, isError: createZonesError } = useQuery({
-    queryKey: ['zones', 'trip-create-options'],
-    queryFn: () => listZones({ per_page: 500, sort: 'name', direction: 'asc' }),
-  })
-
-  const filterDriverOptions = useMemo(
-    () =>
-      (createDriversRes?.items ?? []).map((d) => ({
-        id: d.id,
-        label: d.full_name || `Driver #${d.id}`,
-      })),
-    [createDriversRes],
-  )
-  const filterVehicleOptions = useMemo(
-    () =>
-      (createCarsRes?.items ?? []).map((c) => ({
-        id: c.id,
-        label: `${c.model} (${c.plate_number})`,
-      })),
-    [createCarsRes],
-  )
-  const zoneOptions = useMemo(() => {
-    const z = new Set<string>()
-    for (const t of rawTrips) {
-      if (t.zone && typeof t.zone === 'object' && 'name' in t.zone) {
-        const n = String((t.zone as { name?: string }).name ?? '').trim()
-        if (n) z.add(n)
-      } else if (t.destination) {
-        const n = String(t.destination).trim()
-        if (n) z.add(n)
-      }
-    }
-    return [...z].sort((a, b) => a.localeCompare(b))
-  }, [rawTrips])
-
-  const createDriverOptions = useMemo(
-    () =>
-      (createDriversRes?.items ?? []).map((driver) => ({
-        id: driver.id,
-        label: driver.full_name || `Driver #${driver.id}`,
-      })),
-    [createDriversRes],
-  )
-  const createCarOptions = useMemo(
-    () =>
-      (createCarsRes?.items ?? []).map((car) => ({
-        id: car.id,
-        label: `${car.model} (${car.plate_number})`,
-      })),
-    [createCarsRes],
-  )
-  const createZoneOptions = useMemo(
-    () =>
-      (createZonesRes?.items ?? []).map((zone) => ({
-        id: zone.id,
-        label: zone.name || `${zone.city} #${zone.id}`,
-      })),
-    [createZonesRes],
-  )
-
-  useEffect(() => {
-    if (createDriversError || createCarsError || createZonesError) {
-      pushToast('error', 'Could not load driver/car/zone options.')
-    }
-  }, [createDriversError, createCarsError, createZonesError, pushToast])
 
   const handleCreateTrip = useCallback(
     (values: CreateTripValues) => {
@@ -396,60 +340,19 @@ export function TripManagementPage() {
         .then((trip) => {
           pushToast('success', 'Trip created.')
           setCreateModalOpen(false)
-          setSelectedId(String(trip.id))
+          navigate(`/trip-management/${trip.id}`)
         })
         .catch(reportError)
     },
-    [create, pushToast, reportError],
+    [create, navigate, pushToast, reportError],
   )
-
-  const mergedProductsById = useMemo(() => {
-    const m = new Map(productsById)
-    for (const p of productsData?.items ?? []) {
-      m.set(p.id, p)
-    }
-    return m
-  }, [productsById, productsData])
-
-  const refreshAll = useCallback(() => {
-    void tripsQuery.refetch()
-    void salesQuery.refetch()
-    if (canManageFleet) {
-      void alertsQuery.refetch()
-      void pendingRequestsQuery.refetch()
-      void fleetSnapshotQuery.refetch()
-    }
-  }, [
-    tripsQuery,
-    salesQuery,
-    alertsQuery,
-    pendingRequestsQuery,
-    fleetSnapshotQuery,
-    canManageFleet,
-  ])
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
-      if (e.key === '/') {
-        e.preventDefault()
-        document.getElementById('trip-ops-search')?.focus()
-      }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
 
   if (tripsQuery.isLoading) {
     return (
-      <div className="mx-auto w-full max-w-[1920px] space-y-4 p-1">
-        <div className="grid gap-2 sm:grid-cols-5 lg:grid-cols-10">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <LoadingSkeleton key={i} className="min-h-[72px]" />
-          ))}
-        </div>
-        <LoadingSkeleton className="min-h-[120px]" />
-        <LoadingSkeleton className="min-h-[400px]" />
+      <div className="space-y-4 p-1">
+        <LoadingSkeleton className="min-h-24 max-w-xl" />
+        <LoadingSkeleton className="min-h-16 w-full" />
+        <LoadingSkeleton className="min-h-80 w-full" />
       </div>
     )
   }
@@ -472,128 +375,277 @@ export function TripManagementPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[1920px] gap-0">
-      <div className="min-w-0 flex-1 space-y-4 p-1 lg:pr-3">
-        <TripOperationsKpiStrip
-          cards={kpiCards}
-          activeFilterKey={kpiFilterKey ?? undefined}
-          onFilterCard={(key: string | null) => {
-            if (!key) {
-              setKpiFilterKey(null)
-              return
-            }
-            setKpiFilterKey((prev) => (prev === key ? null : key))
-          }}
-        />
-
-        <TripOperationsFilterBar
-          filters={filters}
-          onFiltersChange={setFilters}
-          zoneOptions={zoneOptions}
-          driverOptions={user?.role === 'driver' ? [] : filterDriverOptions}
-          vehicleOptions={user?.role === 'driver' ? [] : filterVehicleOptions}
-          liveMode={liveMode}
-          onLiveModeChange={setLiveMode}
-          onRefresh={refreshAll}
-          refreshing={tripsQuery.isFetching || salesQuery.isFetching}
-          onExport={() => exportOperationsToCsv(filteredRows)}
-          createTripAction={
-            user?.role === 'admin' || user?.role === 'manager' ? (
-              <Button type="button" size="sm" className="h-8 text-xs" onClick={() => setCreateModalOpen(true)}>
-                <Plus className="size-3.5" aria-hidden />
-                Create trip
-              </Button>
-            ) : null
-          }
-        />
-
-        {user?.role === 'driver' && driverScopeId == null ? (
-          <p className="rounded-lg border border-dashed px-4 py-12 text-center text-sm text-muted-foreground">
-            Your driver profile must match your user name to list trips. Ask an admin to align your account name with
-            your driver record.
-          </p>
-        ) : filteredRows.length === 0 ? (
-          <p className="rounded-lg border border-dashed px-4 py-12 text-center text-sm text-muted-foreground">
-            No trips match the current operational filters.
-          </p>
-        ) : (
-          <TripOperationsTable
-            data={filteredRows}
-            globalFilter={filters.search}
-            selectedId={selectedId || null}
-            onSelectRow={selectTrip}
-            pageSize={25}
-            bulkActions={
-              <Button type="button" variant="outline" size="sm" className="h-7 text-[10px]" onClick={refreshAll}>
-                Sync now
-              </Button>
-            }
-          />
-        )}
-      </div>
-
-      <div className="hidden lg:block">
-        <TripOperationDrawer
-          open
-          layout="desktop"
-          tripId={selectedId || null}
-          detailLoading={Boolean(selectedId) && detailLoading}
-          detail={detailData ?? null}
-          workspace={workspaceDetail}
-          productsById={mergedProductsById}
-          activeTab={drawerTab}
-          onTabChange={setDrawerTab}
-          onClose={() => setSelectedId('')}
-          canManageRequests={canManageFleet}
-          onInventoryError={(msg: string) => pushToast('error', msg)}
-          onOpening={canOperateInventory ? () => handleInventoryActionOpen('opening') : undefined}
-          onLoad={canOperateInventory ? () => handleInventoryActionOpen('load') : undefined}
-          onCloseCount={canOperateInventory ? () => handleInventoryActionOpen('closeCount') : undefined}
-          onEndTrip={canOperateInventory ? () => handleEndTrip(selectedId) : undefined}
-          onDeleteTrip={canManageFleet ? handleDeleteTrip : undefined}
-          tripActionPending={tripPending}
-        />
-      </div>
-
-      <div
-        className={cn(
-          'fixed inset-0 z-40 bg-background/70 backdrop-blur-sm transition-opacity lg:hidden',
-          mobilePanelOpen ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
-        )}
-        aria-hidden={!mobilePanelOpen}
-        onClick={() => setMobilePanelOpen(false)}
+    <div className="space-y-8">
+      <PageHeader
+        eyebrow="Operations"
+        title="Trip management"
+        description="Plan and review trips across your fleet — filter by route, assignee, dates, search, open a trip profile, or create a new run."
+        actions={
+          canCreateOrDelete ? (
+            <Button type="button" className="gap-2 shadow-sm" onClick={() => setCreateModalOpen(true)}>
+              <Plus className="size-4" aria-hidden />
+              Create trip
+            </Button>
+          ) : null
+        }
       />
 
-      <div
-        className={cn(
-          'fixed inset-y-0 right-0 z-50 w-full max-w-full transform border-l border-border/60 bg-background shadow-2xl transition-transform duration-200 ease-out sm:max-w-[540px] lg:hidden',
-          mobilePanelOpen ? 'translate-x-0' : 'translate-x-full',
-        )}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Trip operations"
-      >
-        <TripOperationDrawer
-          open={mobilePanelOpen}
-          layout="drawer"
-          tripId={selectedId || null}
-          detailLoading={Boolean(selectedId) && detailLoading}
-          detail={detailData ?? null}
-          workspace={workspaceDetail}
-          productsById={mergedProductsById}
-          activeTab={drawerTab}
-          onTabChange={setDrawerTab}
-          onClose={() => setMobilePanelOpen(false)}
-          canManageRequests={canManageFleet}
-          onInventoryError={(msg: string) => pushToast('error', msg)}
-          onOpening={canOperateInventory ? () => handleInventoryActionOpen('opening') : undefined}
-          onLoad={canOperateInventory ? () => handleInventoryActionOpen('load') : undefined}
-          onCloseCount={canOperateInventory ? () => handleInventoryActionOpen('closeCount') : undefined}
-          onEndTrip={canOperateInventory ? () => handleEndTrip(selectedId) : undefined}
-          onDeleteTrip={canManageFleet ? handleDeleteTrip : undefined}
-          tripActionPending={tripPending}
+      <div className="space-y-3">
+        <FilterBar
+          searchPlaceholder="Search trips by driver, zone, plate, trip #…"
+          searchValue={draft.search}
+          onSearchChange={(e) => setDraft((prev) => ({ ...prev, search: e.target.value }))}
+          searchInputId="trip-list-search"
+          searchAriaLabel="Search trips"
+          searchDisabled={!!tripsQuery.error}
+          searchContainerClassName="w-full max-w-none flex-1"
+          className="flex-col md:flex-col"
+          filters={
+            <div className="flex w-full flex-col gap-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button type="button" variant="secondary" size="sm" className="h-9" onClick={applyFilters}>
+                  Search
+                </Button>
+                <button
+                  type="button"
+                  className="text-sm font-semibold text-primary underline-offset-4 hover:underline"
+                  onClick={clearFilters}
+                >
+                  Clear filters
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-end gap-3">
+                {user?.role !== 'driver' ? (
+                  <>
+                    <FilterSelect
+                      label="Status"
+                      value={draft.status}
+                      onChange={(v) => setDraft((prev) => ({ ...prev, status: v as AppliedFilters['status'] }))}
+                      options={[
+                        { value: 'all', label: 'All' },
+                        { value: 'active', label: 'Active' },
+                        { value: 'closed', label: 'Closed' },
+                      ]}
+                      id="trip-filter-status"
+                    />
+                    <FilterSelect
+                      label="Driver"
+                      value={draft.driverId}
+                      onChange={(v) => setDraft((prev) => ({ ...prev, driverId: v }))}
+                      options={[
+                        { value: '', label: 'All' },
+                        ...driverOptions.map((d) => ({ value: String(d.id), label: d.label })),
+                      ]}
+                      id="trip-filter-driver"
+                    />
+                    <FilterSelect
+                      label="Zone"
+                      value={draft.zoneId}
+                      onChange={(v) => setDraft((prev) => ({ ...prev, zoneId: v }))}
+                      options={[
+                        { value: '', label: 'All' },
+                        ...zoneOptions.map((z) => ({ value: String(z.id), label: z.label })),
+                      ]}
+                      id="trip-filter-zone"
+                    />
+                  </>
+                ) : (
+                  <>
+                    <FilterSelect
+                      label="Status"
+                      value={draft.status}
+                      onChange={(v) => setDraft((prev) => ({ ...prev, status: v as AppliedFilters['status'] }))}
+                      options={[
+                        { value: 'all', label: 'All' },
+                        { value: 'active', label: 'Active' },
+                        { value: 'closed', label: 'Closed' },
+                      ]}
+                      id="trip-filter-status"
+                    />
+                    <FilterSelect
+                      label="Zone"
+                      value={draft.zoneId}
+                      onChange={(v) => setDraft((prev) => ({ ...prev, zoneId: v }))}
+                      options={[
+                        { value: '', label: 'All' },
+                        ...zoneOptions.map((z) => ({ value: String(z.id), label: z.label })),
+                      ]}
+                      id="trip-filter-zone"
+                    />
+                  </>
+                )}
+
+                <div className="flex min-w-[140px] flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground" htmlFor="trip-date-from">
+                    Created from
+                  </label>
+                  <input
+                    id="trip-date-from"
+                    type="date"
+                    value={draft.dateFrom}
+                    onChange={(e) => setDraft((prev) => ({ ...prev, dateFrom: e.target.value }))}
+                    className="h-9 rounded-lg border border-border/60 bg-surface-lowest px-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                </div>
+                <div className="flex min-w-[140px] flex-col gap-1">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground" htmlFor="trip-date-to">
+                    Created to
+                  </label>
+                  <input
+                    id="trip-date-to"
+                    type="date"
+                    value={draft.dateTo}
+                    onChange={(e) => setDraft((prev) => ({ ...prev, dateTo: e.target.value }))}
+                    className="h-9 rounded-lg border border-border/60 bg-surface-lowest px-2 text-sm outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                </div>
+
+                <Button type="button" size="sm" className="h-9 shrink-0" onClick={applyFilters}>
+                  Apply filters
+                </Button>
+              </div>
+            </div>
+          }
         />
       </div>
+
+      {user?.role === 'driver' && driverScopeId == null ? (
+        <p className="rounded-lg border border-dashed px-4 py-12 text-center text-sm text-muted-foreground">
+          Your driver profile must match your user name to list trips. Ask an admin to align your account name with
+          your driver record.
+        </p>
+      ) : (
+        <section className="surface-panel overflow-hidden rounded-xl border border-border/60 bg-card shadow-[var(--shadow-soft)]">
+          <div className="border-b border-border/60 bg-surface-high/20 px-4 py-4 sm:px-6">
+            <h2 className="text-lg font-black tracking-tight text-primary">Trips</h2>
+            <p className="mt-1 text-xs text-muted-foreground">Showing results for your current filters.</p>
+          </div>
+
+          <div className="overflow-x-auto overscroll-x-contain [scrollbar-gutter:stable]">
+            <table className="w-full min-w-[44rem] border-collapse text-left">
+              <thead>
+                <tr className="bg-surface-high/30">
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                    #
+                  </th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Trip
+                  </th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Vehicle
+                  </th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Start
+                  </th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">End</th>
+                  <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Created
+                  </th>
+                  <th className="px-6 py-4 text-right text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/60">
+                {pagedTrips.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-12 text-center text-sm font-medium text-muted-foreground">
+                      No trips match the current filters.
+                    </td>
+                  </tr>
+                ) : (
+                  pagedTrips.map((t) => {
+                    const closed = tripRawStatus(t) === 'closed'
+                    const driverLabel = tripDriverName(t)
+                    const hue = avatarHueSeed(t.id)
+                    const vehicle = tripVehicleLabel(t)
+                    return (
+                      <tr
+                        key={t.id}
+                        className="transition-colors hover:bg-primary-fixed/35 dark:hover:bg-primary-fixed/15"
+                      >
+                        <td className="px-6 py-4 text-sm font-semibold tabular-nums text-foreground">{t.id}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-start gap-3">
+                            <div
+                              className="flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-black text-white shadow-sm"
+                              style={{ backgroundColor: `hsl(${hue} 62% 48%)` }}
+                              aria-hidden
+                            >
+                              {initialsFromName(driverLabel)}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-semibold leading-tight text-foreground">{driverLabel}</p>
+                              <p className="mt-0.5 text-xs text-muted-foreground">{tripZoneSubtitle(t)}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-sm font-medium text-foreground">{vehicle.model}</span>
+                            {vehicle.plate ? <span className="text-xs text-muted-foreground">{vehicle.plate}</span> : null}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <Badge variant={closed ? 'secondary' : 'success'} className="normal-case">
+                            {closed ? 'Closed' : 'Active'}
+                          </Badge>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-muted-foreground">
+                          {formatTripDate((t as { start_date?: unknown }).start_date)}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-muted-foreground">
+                          {formatTripDate((t as { end_date?: unknown }).end_date)}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-muted-foreground">{formatTripDate(t.created_at)}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex justify-end gap-1">
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="size-9 rounded-lg"
+                              aria-label={`View trip ${t.id}`}
+                              onClick={() => navigate(`/trip-management/${t.id}`)}
+                            >
+                              <Eye className="size-4" />
+                            </Button>
+                            {canCreateOrDelete ? (
+                              <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                className="size-9 rounded-lg text-destructive hover:text-destructive"
+                                disabled={remove.isPending}
+                                aria-label={`Delete trip ${t.id}`}
+                                onClick={() => handleDelete(t)}
+                              >
+                                <Trash2 className="size-4" />
+                              </Button>
+                            ) : null}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <PaginationBar
+            page={safePage}
+            pageSize={PAGE_SIZE}
+            total={total}
+            entityLabel="trips"
+            onPageChange={setPage}
+          />
+        </section>
+      )}
 
       <CreateTripModal
         open={createModalOpen}
@@ -604,18 +656,42 @@ export function TripManagementPage() {
         zoneOptions={createZoneOptions}
         onSubmit={handleCreateTrip}
       />
+    </div>
+  )
+}
 
-      <InventoryActionModal
-        open={inventoryActionOpen}
-        mode={inventoryActionMode}
-        onClose={() => {
-          setInventoryActionOpen(false)
-          setInventoryActionMode(null)
-        }}
-        submitting={tripPending}
-        products={closeCountProducts}
-        onSubmit={handleInventoryActionSubmit}
-      />
+function FilterSelect({
+  label,
+  id,
+  value,
+  onChange,
+  options,
+}: {
+  label: string
+  id: string
+  value: string
+  onChange: (v: string) => void
+  options: Array<{ value: string; label: string }>
+}) {
+  return (
+    <div className="flex min-w-[140px] flex-col gap-1">
+      <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground" htmlFor={id}>
+        {label}
+      </label>
+      <select
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={cn(
+          'h-9 rounded-lg border border-border/60 bg-surface-lowest px-2 text-sm outline-none transition focus:ring-2 focus:ring-primary/30',
+        )}
+      >
+        {options.map((o) => (
+          <option key={o.value || 'all'} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
     </div>
   )
 }

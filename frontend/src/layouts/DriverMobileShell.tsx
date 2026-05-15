@@ -1,7 +1,8 @@
 import { Link, Navigate, Outlet, useLocation } from 'react-router-dom'
 
 import { useAuth } from '@/features/auth/AuthContext'
-import { canAccessPath, getHomePath, isDriver, isSuperAdmin } from '@/features/auth/permissions'
+import { canAccessPath, getHomePath, isSuperAdmin } from '@/features/auth/permissions'
+import { DriverLogoutButton } from '@/layouts/driver-logout-button'
 import { cn } from '@/lib/utils'
 
 const DRIVER_AVATAR = '/stitch/driver-submit-request/driver-avatar.jpg'
@@ -9,6 +10,7 @@ const DRIVER_AVATAR = '/stitch/driver-submit-request/driver-avatar.jpg'
 const driverOnlyNavItems = [
   { to: '/driver', label: 'Submit', icon: 'add_circle' as const },
   { to: '/driver/sales', label: 'Sales', icon: 'sell' as const },
+  { to: '/driver/profile', label: 'Profile', icon: 'person' as const },
 ] as const
 
 const superAdminDriverNavItems = [
@@ -17,7 +19,7 @@ const superAdminDriverNavItems = [
   { to: '/driver', label: 'Submit', icon: 'add_circle' as const },
   { to: '/driver/sales', label: 'Sales', icon: 'sell' as const },
   { to: '/request-management', label: 'Requests', icon: 'pending_actions' as const },
-  { to: '/admin', label: 'Profile', icon: 'person' as const },
+  { to: '/driver/profile', label: 'Profile', icon: 'person' as const },
 ] as const
 
 function navItemActive(pathname: string, to: string) {
@@ -29,6 +31,9 @@ function navItemActive(pathname: string, to: string) {
   }
   if (to === '/driver/sales') {
     return pathname.startsWith('/driver/sales')
+  }
+  if (to === '/driver/profile') {
+    return pathname.startsWith('/driver/profile')
   }
   if (to === '/platform') {
     return pathname === '/platform' || pathname.startsWith('/platform/')
@@ -55,7 +60,8 @@ export function DriverMobileShell() {
           <div className="text-2xl font-black tracking-tighter text-primary dark:text-white">
             FleetOps
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <DriverLogoutButton />
             <button
               type="button"
               className="text-muted-foreground transition-colors hover:text-foreground"
@@ -64,9 +70,9 @@ export function DriverMobileShell() {
               <span className="material-symbols-outlined !text-2xl">notifications</span>
             </button>
             <Link
-              to={user && isDriver(user) ? '/driver' : '/platform'}
+              to="/driver/profile"
               className="block size-8 overflow-hidden rounded-full bg-primary-fixed"
-              aria-label={user && isDriver(user) ? 'Submit request home' : 'Open platform'}
+              aria-label="Open profile"
             >
               <img
                 alt=""

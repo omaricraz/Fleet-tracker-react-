@@ -19,11 +19,16 @@ export function getMySales(): Promise<SaleRecord[]> {
   return apiRequest<SaleRecord[]>('/sales/my')
 }
 
+/**
+ * Laravel `POST /sales` validates one sale per request:
+ * trip_id, product_id, customer_id, quantity, total_price — not a batched `items` array.
+ */
 export interface StoreSaleBody {
   trip_id: number
-  product_id: number
   customer_id: number
+  product_id: number
   quantity: number
+  /** Line total equal to unit price × quantity (2 decimal places recommended). */
   total_price: number
 }
 

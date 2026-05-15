@@ -456,8 +456,8 @@ export function UserManagementPage() {
           <h2 className="text-lg font-black tracking-tight text-primary">Tenant users</h2>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left">
+        <div className="overflow-x-auto overscroll-x-contain [scrollbar-gutter:stable]">
+          <table className="w-full min-w-[42rem] border-collapse text-left">
             <thead>
               <tr className="bg-surface-high/30">
                 <th className="px-6 py-4 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">

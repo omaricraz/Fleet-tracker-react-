@@ -4,11 +4,18 @@ import { Loader2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export type ResourceFormValues = Record<string, string | undefined>
+
+export type ResourceFormFieldOption = { value: string; label: string }
+
 export type ResourceFormField = {
   key: string
   label: string
-  type?: 'text' | 'number' | 'email'
+  type?: 'text' | 'number' | 'email' | 'select'
   required?: boolean
+  /** When type is "select"; submitted value stays a string until the mutation maps types. */
+  options?: ResourceFormFieldOption[]
+  /** Leading option when type is "select"; empty string clears the selection. */
+  emptyOptionLabel?: string
 }
 
 interface AddDriverModalProps {
@@ -81,15 +88,33 @@ export function AddDriverModal({
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground" htmlFor={field.key}>
                 {field.label}
               </label>
-              <input
-                id={field.key}
-                type={field.type ?? 'text'}
-                value={values[field.key] ?? ''}
-                required={field.required}
-                disabled={submitting}
-                onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
-                className="w-full rounded-lg border border-border/60 bg-surface-lowest px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-primary/30 disabled:opacity-60"
-              />
+              {field.type === 'select' ? (
+                <select
+                  id={field.key}
+                  value={values[field.key] ?? ''}
+                  required={field.required}
+                  disabled={submitting}
+                  onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                  className="w-full rounded-lg border border-border/60 bg-surface-lowest px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-primary/30 disabled:opacity-60"
+                >
+                  <option value="">{field.emptyOptionLabel ?? 'No zone'}</option>
+                  {(field.options ?? []).map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  id={field.key}
+                  type={field.type ?? 'text'}
+                  value={values[field.key] ?? ''}
+                  required={field.required}
+                  disabled={submitting}
+                  onChange={(e) => setValues((prev) => ({ ...prev, [field.key]: e.target.value }))}
+                  className="w-full rounded-lg border border-border/60 bg-surface-lowest px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-primary/30 disabled:opacity-60"
+                />
+              )}
               {errors[field.key] ? <p className="text-xs font-semibold text-destructive">{errors[field.key]}</p> : null}
             </div>
           ))}
