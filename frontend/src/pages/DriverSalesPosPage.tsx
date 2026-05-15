@@ -26,6 +26,9 @@ type PosTab = 'sale' | 'history'
 const NO_TRIP_FOR_SALES_DRIVER_MESSAGE =
   'No trip has been created. Ask your manager to create a trip for you.'
 
+const SINGLE_PRODUCT_PER_SALE_MESSAGE =
+  'Only one product can be recorded per sale. Clear quantities on other products or record this sale first, then start another.'
+
 /** Parse catalog unit price safely for money math */
 function parseUnitPrice(price: unknown): number {
   if (typeof price === 'number' && Number.isFinite(price)) return price
@@ -188,7 +191,18 @@ export function DriverSalesPosPage() {
   }, [qtyById, products])
 
   function setQty(id: string, next: number) {
-    setQtyById((prev) => ({ ...prev, [id]: Math.max(0, next) }))
+    const clamped = Math.max(0, next)
+    if (clamped > 0) {
+      const otherHasQty = products.some((p) => {
+        const k = String(p.id)
+        return k !== id && (qtyById[k] ?? 0) > 0
+      })
+      if (otherHasQty) {
+        pushToast('error', SINGLE_PRODUCT_PER_SALE_MESSAGE)
+        return
+      }
+    }
+    setQtyById((prev) => ({ ...prev, [id]: clamped }))
   }
 
   async function recordSales() {
@@ -203,6 +217,10 @@ export function DriverSalesPosPage() {
     const lines = products.filter((p) => (qtyById[String(p.id)] ?? 0) > 0)
     if (lines.length === 0) {
       pushToast('error', 'Select quantities for at least one product.')
+      return
+    }
+    if (lines.length > 1) {
+      pushToast('error', SINGLE_PRODUCT_PER_SALE_MESSAGE)
       return
     }
     try {
