@@ -1,3 +1,4 @@
+export { buildApiUrl, getApiBaseUrl } from '@/config/api'
 export * from './types'
 export * from './queryString'
 export * from './client'

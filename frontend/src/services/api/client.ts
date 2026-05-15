@@ -1,12 +1,11 @@
+import { buildApiUrl, getApiBaseUrl } from '@/config/api'
+
 import type { ApiErrorEnvelope, ApiSuccessEnvelope } from './types'
+
+export { buildApiUrl, getApiBaseUrl }
 
 const TOKEN_LS = 'fleet_tracker_auth_token'
 const TOKEN_SS = 'fleet_tracker_auth_token'
-
-export function getApiBaseUrl(): string {
-  const raw = import.meta.env.VITE_API_BASE_URL as string | undefined
-  return (raw?.replace(/\/$/, '') || 'http://localhost:8000/api/v1').trim()
-}
 
 function readToken(): string | null {
   return localStorage.getItem(TOKEN_LS) ?? sessionStorage.getItem(TOKEN_SS)
@@ -87,7 +86,7 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   const token = skipAuth ? null : readToken()
   const headers = buildHeaders(initHeaders, token, isJsonBody)
 
-  const url = `${getApiBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`
+  const url = buildApiUrl(path)
   const res = await fetch(url, {
     ...rest,
     headers,
