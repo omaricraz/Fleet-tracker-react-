@@ -132,31 +132,89 @@ export async function fetchRequestsForRole(
   return raw.map(normalizeFleetRequest)
 }
 
+/** One API round-trip; status/search/date are applied client-side. */
+export async function fetchRequestSourceRows(
+  role: RequestApiRole,
+  serverFilters: Pick<RequestListQuery, 'type' | 'driverId'>,
+): Promise<FleetRequest[]> {
+  if (role === 'driver') {
+    const raw = await listMyFleetRequests()
+    return raw.map(normalizeFleetRequest)
+  }
+  const raw = await listFleetRequests({
+    type: serverFilters.type === 'all' ? undefined : serverFilters.type,
+    driver_id:
+      serverFilters.driverId === 'all' ? undefined : Number(serverFilters.driverId),
+  })
+  return raw.map(normalizeFleetRequest)
+}
+
+function paginateRequests(
+  filtered: FleetRequest[],
+  query: RequestListQuery,
+): PaginatedResult<FleetRequest> {
+  const total = filtered.length
+  const start = (query.page - 1) * query.pageSize
+  return {
+    items: filtered.slice(start, start + query.pageSize),
+    total,
+    page: query.page,
+    pageSize: query.pageSize,
+  }
+}
+
+export function deriveRequestMetrics(
+  source: FleetRequest[],
+  query: Omit<RequestListQuery, 'status' | 'page' | 'pageSize'>,
+): RequestMetrics {
+  const metricsQuery: RequestListQuery = {
+    ...query,
+    status: 'all',
+    page: 1,
+    pageSize: 1,
+  }
+  return metricsFromList(filterRequests(source, metricsQuery))
+}
+
+export function deriveRequestPage(
+  source: FleetRequest[],
+  query: RequestListQuery,
+): PaginatedResult<FleetRequest> {
+  return paginateRequests(filterRequests(source, query), query)
+}
+
+/** Metrics + table page from a single fetched source list (no duplicate /requests). */
+export async function loadRequestManagementData(
+  role: RequestApiRole,
+  metricsInput: Omit<RequestListQuery, 'status' | 'page' | 'pageSize'>,
+  query: RequestListQuery,
+): Promise<{
+  source: FleetRequest[]
+  metrics: RequestMetrics
+  page: PaginatedResult<FleetRequest>
+}> {
+  const source = await fetchRequestSourceRows(role, metricsInput)
+  return {
+    source,
+    metrics: deriveRequestMetrics(source, metricsInput),
+    page: deriveRequestPage(source, query),
+  }
+}
+
 export async function getRequestMetrics(
   role: RequestApiRole,
   query: Omit<RequestListQuery, 'status' | 'page' | 'pageSize'>,
 ): Promise<RequestMetrics> {
-  const base: RequestListQuery = {
-    ...query,
-    status: 'all',
-    page: 1,
-    pageSize: 500,
-  }
-  const all = await fetchRequestsForRole(role, base)
-  const filtered = filterRequests(all, base)
-  return metricsFromList(filtered)
+  const source = await fetchRequestSourceRows(role, query)
+  return deriveRequestMetrics(source, query)
 }
 
 export async function listRequests(
   role: RequestApiRole,
   query: RequestListQuery,
 ): Promise<PaginatedResult<FleetRequest>> {
-  const all = await fetchRequestsForRole(role, query)
-  const filtered = filterRequests(all, query)
-  const total = filtered.length
-  const start = (query.page - 1) * query.pageSize
-  const items = filtered.slice(start, start + query.pageSize)
-  return { items, total, page: query.page, pageSize: query.pageSize }
+  const source = await fetchRequestSourceRows(role, query)
+  return deriveRequestPage(source, query)
 }
 
 export async function approveRequestApi(requestId: string): Promise<FleetRequest> {

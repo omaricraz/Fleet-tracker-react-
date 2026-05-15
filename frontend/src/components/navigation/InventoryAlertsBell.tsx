@@ -1,6 +1,6 @@
 import { Bell, Loader2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -92,12 +92,14 @@ function AlertPopoverRow({
 
 export function InventoryAlertsBell({ buttonVariant = 'secondary' }: InventoryAlertsBellProps) {
   const { user } = useAuth()
+  const { pathname } = useLocation()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const canUse = Boolean(user && canAccessPath(user, INVENTORY_ALERTS_PAGE_PATH))
-  const feed = useInventoryAlertsFeed(canUse)
+  const onAlertsPage = pathname === INVENTORY_ALERTS_PAGE_PATH
+  const feed = useInventoryAlertsFeed(canUse && !onAlertsPage)
 
   const recentAlerts = useMemo(() => {
     const rows = feed.data ?? []

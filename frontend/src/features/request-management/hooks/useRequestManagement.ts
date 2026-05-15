@@ -3,9 +3,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from '@/features/auth/AuthContext'
 import {
   approveRequestApi,
-  getRequestMetrics,
+  deriveRequestMetrics,
+  deriveRequestPage,
+  fetchRequestSourceRows,
   listRequestFilterDrivers,
-  listRequests,
   rejectRequestApi,
   type RequestApiRole,
 } from '../api/requestApi'
@@ -37,8 +38,7 @@ export function useRequestManagement() {
     user?.role === 'admin' || user?.role === 'manager' || user?.role === 'driver' ? user.role : null
 
   const [query, setQuery] = useState<RequestListQuery>(initialQuery)
-  const [metrics, setMetrics] = useState<RequestMetrics | null>(null)
-  const [pageData, setPageData] = useState<PaginatedResult<FleetRequest> | null>(null)
+  const [sourceRows, setSourceRows] = useState<FleetRequest[] | null>(null)
   const [drivers, setDrivers] = useState<Array<{ id: string; name: string }>>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -54,37 +54,50 @@ export function useRequestManagement() {
     [query.search, query.type, query.driverId, query.datePreset],
   )
 
-  const load = useCallback(async () => {
+  const refreshSource = useCallback(async () => {
     if (!role) {
+      setSourceRows(null)
       setLoading(false)
       setError('Sign in as a tenant user to load requests.')
-      setMetrics(null)
-      setPageData(null)
       return
     }
     setLoading(true)
     setError(null)
     try {
-      const [m, list] = await Promise.all([
-        getRequestMetrics(role, metricsInput),
-        listRequests(role, query),
-      ])
-      setMetrics(m)
-      setPageData(list)
-      const maxPage = Math.max(1, Math.ceil(list.total / query.pageSize))
-      setQuery((q) => (q.page > maxPage ? { ...q, page: maxPage } : q))
+      const rows = await fetchRequestSourceRows(role, {
+        type: query.type,
+        driverId: query.driverId,
+      })
+      setSourceRows(rows)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Unable to load requests.')
-      setMetrics(null)
-      setPageData(null)
+      setSourceRows(null)
     } finally {
       setLoading(false)
     }
-  }, [metricsInput, query, role])
+  }, [role, query.type, query.driverId])
 
   useEffect(() => {
-    void load()
-  }, [load])
+    void refreshSource()
+  }, [refreshSource])
+
+  const metrics = useMemo<RequestMetrics | null>(() => {
+    if (!sourceRows) return null
+    return deriveRequestMetrics(sourceRows, metricsInput)
+  }, [sourceRows, metricsInput])
+
+  const pageData = useMemo<PaginatedResult<FleetRequest> | null>(() => {
+    if (!sourceRows) return null
+    return deriveRequestPage(sourceRows, query)
+  }, [sourceRows, query])
+
+  useEffect(() => {
+    if (!pageData) return
+    const maxPage = Math.max(1, Math.ceil(pageData.total / query.pageSize))
+    if (query.page > maxPage) {
+      setQuery((q) => ({ ...q, page: maxPage }))
+    }
+  }, [pageData, query.page, query.pageSize])
 
   useEffect(() => {
     let cancelled = false
@@ -138,7 +151,7 @@ export function useRequestManagement() {
     setDecisionSubmitting(true)
     try {
       await approveRequestApi(requestId)
-      await load()
+      await refreshSource()
     } finally {
       setDecisionSubmitting(false)
     }
@@ -148,7 +161,7 @@ export function useRequestManagement() {
     setDecisionSubmitting(true)
     try {
       await rejectRequestApi(requestId, reason)
-      await load()
+      await refreshSource()
     } finally {
       setDecisionSubmitting(false)
     }
@@ -162,7 +175,7 @@ export function useRequestManagement() {
     loading,
     error,
     decisionSubmitting,
-    refresh: load,
+    refresh: refreshSource,
     setSearch,
     setTypeFilter,
     setStatusFilter,

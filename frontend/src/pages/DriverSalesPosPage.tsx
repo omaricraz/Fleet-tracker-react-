@@ -137,7 +137,7 @@ export function DriverSalesPosPage() {
         direction: 'asc',
         search: debouncedCustomerSearch || undefined,
       }),
-    enabled: Boolean(user),
+    enabled: Boolean(user) && customerPickerOpen,
   })
   const customers = customersPage?.items ?? []
   const customerId = selectedCustomer?.id ?? null
