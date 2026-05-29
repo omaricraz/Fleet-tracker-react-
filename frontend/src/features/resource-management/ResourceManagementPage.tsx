@@ -436,7 +436,8 @@ export function ResourceManagementPage() {
         fields: [
           { key: 'full_name', label: 'Full name', required: true },
           { key: 'phone', label: 'Phone', required: true },
-          { key: 'zone_id', label: 'Zone ID', type: 'number' },
+          { key: 'zone_id', label: 'Zone', type: 'select', options: zoneDropdownOptions },
+     
         ] satisfies ResourceFormField[],
         values: {
           full_name: editingDriver?.full_name ?? '',
